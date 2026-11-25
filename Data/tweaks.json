@@ -31,7 +31,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control' -Name 'WaitToKillServiceTimeout' -ErrorAction SilentlyContinue).WaitToKillServiceTimeout; return ($v -eq '2000')",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['WaitToKillServiceTimeout'] -and $p.PSObject.Properties['WaitToKillServiceTimeout'].Value -eq '2000')",
     "applyScript": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control' -Name 'WaitToKillServiceTimeout' -Value '2000' -Type String; if (-not (Test-Path 'HKCU:\\Control Panel\\Desktop')) { New-Item -Path 'HKCU:\\Control Panel\\Desktop' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name 'WaitToKillAppTimeout' -Value '2000' -Type String; Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name 'HungAppTimeout' -Value '2000' -Type String",
     "revertScript": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control' -Name 'WaitToKillServiceTimeout' -Value '5000' -Type String; Remove-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name 'WaitToKillAppTimeout' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name 'HungAppTimeout' -ErrorAction SilentlyContinue"
   },
@@ -49,7 +49,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' -Name 'NtfsDisableLastAccess' -ErrorAction SilentlyContinue).NtfsDisableLastAccess; return ($v -eq 1)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['NtfsDisableLastAccess'] -and $p.PSObject.Properties['NtfsDisableLastAccess'].Value -eq 1)",
     "applyScript": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' -Name 'NtfsDisableLastAccess' -Value 1 -Type DWord",
     "revertScript": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' -Name 'NtfsDisableLastAccess' -Value 2 -Type DWord"
   },
@@ -67,7 +67,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize' -Name 'EnableTransparency' -ErrorAction SilentlyContinue).EnableTransparency; return ($v -eq 0)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['EnableTransparency'] -and $p.PSObject.Properties['EnableTransparency'].Value -eq 0)",
     "applyScript": "if (-not (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize')) { New-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize' -Name 'EnableTransparency' -Value 0 -Type DWord",
     "revertScript": "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize' -Name 'EnableTransparency' -Value 1 -Type DWord"
   },
@@ -103,7 +103,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$p = Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name 'TaskbarAnimations' -ErrorAction SilentlyContinue; return ($null -ne $p -and $p.TaskbarAnimations -eq 0)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['TaskbarAnimations'] -and $p.PSObject.Properties['TaskbarAnimations'].Value -eq 0)",
     "applyScript": "if (-not (Test-Path 'HKCU:\\Control Panel\\Desktop\\WindowMetrics')) { New-Item -Path 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Name 'MinAnimate' -Value '0' -Type String; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name 'TaskbarAnimations' -Value 0 -Type DWord",
     "revertScript": "Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Name 'MinAnimate' -Value '1' -Type String; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -Name 'TaskbarAnimations' -Value 1 -Type DWord"
   },
@@ -121,7 +121,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$a = (Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR' -Name 'AppCaptureEnabled' -ErrorAction SilentlyContinue).AppCaptureEnabled; $b = (Get-ItemProperty -Path 'HKCU:\\System\\GameConfigStore' -Name 'GameDVR_Enabled' -ErrorAction SilentlyContinue).GameDVR_Enabled; return ($a -eq 0 -and $b -eq 0)",
+    "detectScript": "$p1 = Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR' -ErrorAction SilentlyContinue; $p2 = Get-ItemProperty -Path 'HKCU:\\System\\GameConfigStore' -ErrorAction SilentlyContinue; $a = if ($null -ne $p1 -and $null -ne $p1.PSObject.Properties['AppCaptureEnabled']) { $p1.PSObject.Properties['AppCaptureEnabled'].Value } else { $null }; $b = if ($null -ne $p2 -and $null -ne $p2.PSObject.Properties['GameDVR_Enabled']) { $p2.PSObject.Properties['GameDVR_Enabled'].Value } else { $null }; return ($a -eq 0 -and $b -eq 0)",
     "applyScript": "if (-not (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR')) { New-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR' -Name 'AppCaptureEnabled' -Value 0 -Type DWord; if (-not (Test-Path 'HKCU:\\System\\GameConfigStore')) { New-Item -Path 'HKCU:\\System\\GameConfigStore' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\System\\GameConfigStore' -Name 'GameDVR_Enabled' -Value 0 -Type DWord",
     "revertScript": "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR' -Name 'AppCaptureEnabled' -Value 1 -Type DWord; Set-ItemProperty -Path 'HKCU:\\System\\GameConfigStore' -Name 'GameDVR_Enabled' -Value 1 -Type DWord"
   },
@@ -139,7 +139,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers' -Name 'HwSchMode' -ErrorAction SilentlyContinue).HwSchMode; return ($v -eq 2)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['HwSchMode'] -and $p.PSObject.Properties['HwSchMode'].Value -eq 2)",
     "applyScript": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers' -Name 'HwSchMode' -Value 2 -Type DWord",
     "revertScript": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers' -Name 'HwSchMode' -Value 1 -Type DWord"
   },
@@ -157,7 +157,7 @@
     "maxBuild": null,
     "chassisWarning": "Laptop",
     "storageSafe": "All",
-    "detectScript": "$p = (Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\93b8b6dc-0698-4d1c-9ee4-0644e900c85d' -Name 'Attributes' -ErrorAction SilentlyContinue).Attributes; return ($p -eq 2)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\93b8b6dc-0698-4d1c-9ee4-0644e900c85d' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['Attributes'] -and $p.PSObject.Properties['Attributes'].Value -eq 2)",
     "applyScript": "$path = 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\54533251-82be-4824-96c1-47b60b740d00\\93b8b6dc-0698-4d1c-9ee4-0644e900c85d'; if (Test-Path $path) { Set-ItemProperty -Path $path -Name 'Attributes' -Value 2 -Type DWord }; & powercfg.exe /SETACVALUEINDEX SCHEME_CURRENT SUB_PROCESSOR HETEROPOLICY 3; & powercfg.exe /SETACTIVE SCHEME_CURRENT",
     "revertScript": "& powercfg.exe /SETACVALUEINDEX SCHEME_CURRENT SUB_PROCESSOR HETEROPOLICY 0; & powercfg.exe /SETACTIVE SCHEME_CURRENT"
   },
@@ -193,7 +193,7 @@
     "maxBuild": null,
     "chassisWarning": "Laptop",
     "storageSafe": "All",
-    "detectScript": "$p = (Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling' -Name 'PowerThrottlingOff' -ErrorAction SilentlyContinue).PowerThrottlingOff; return ($p -eq 1)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['PowerThrottlingOff'] -and $p.PSObject.Properties['PowerThrottlingOff'].Value -eq 1)",
     "applyScript": "if (-not (Test-Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling')) { New-Item -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling' -Force | Out-Null }; Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling' -Name 'PowerThrottlingOff' -Value 1 -Type DWord",
     "revertScript": "Remove-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling' -Name 'PowerThrottlingOff' -ErrorAction SilentlyContinue"
   },
@@ -211,7 +211,7 @@
     "maxBuild": null,
     "chassisWarning": "Laptop",
     "storageSafe": "All",
-    "detectScript": "$h = (Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power' -Name 'HibernateEnabled' -ErrorAction SilentlyContinue).HibernateEnabled; return ($h -eq 0)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['HibernateEnabled'] -and $p.PSObject.Properties['HibernateEnabled'].Value -eq 0)",
     "applyScript": "& powercfg.exe /hibernate off",
     "revertScript": "& powercfg.exe /hibernate on"
   },
@@ -247,7 +247,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$svc = Get-Service -Name 'DiagTrack' -ErrorAction SilentlyContinue; $t = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -ErrorAction SilentlyContinue).AllowTelemetry; return ($null -ne $svc -and $svc.StartType -eq 'Disabled' -and $t -eq 0)",
+    "detectScript": "$svc = Get-Service -Name 'DiagTrack' -ErrorAction SilentlyContinue; $p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -ErrorAction SilentlyContinue; $t = if ($null -ne $p -and $null -ne $p.PSObject.Properties['AllowTelemetry']) { $p.PSObject.Properties['AllowTelemetry'].Value } else { $null }; return ($null -ne $svc -and $svc.StartType -eq 'Disabled' -and $t -eq 0)",
     "applyScript": "Stop-Service -Name 'DiagTrack' -Force -ErrorAction SilentlyContinue; Set-Service -Name 'DiagTrack' -StartupType Disabled -ErrorAction SilentlyContinue; if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection')) { New-Item -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Force | Out-Null }; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -Value 0 -Type DWord",
     "revertScript": "Set-Service -Name 'DiagTrack' -StartupType Automatic -ErrorAction SilentlyContinue; Start-Service -Name 'DiagTrack' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection' -Name 'AllowTelemetry' -ErrorAction SilentlyContinue"
   },
@@ -265,7 +265,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot' -Name 'TurnOffWindowsCopilot' -ErrorAction SilentlyContinue).TurnOffWindowsCopilot; return ($v -eq 1)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['TurnOffWindowsCopilot'] -and $p.PSObject.Properties['TurnOffWindowsCopilot'].Value -eq 1)",
     "applyScript": "if (-not (Test-Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot')) { New-Item -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot' -Name 'TurnOffWindowsCopilot' -Value 1 -Type DWord",
     "revertScript": "Remove-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot' -Name 'TurnOffWindowsCopilot' -ErrorAction SilentlyContinue"
   },
@@ -283,7 +283,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$a = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI' -Name 'DisableAIDataAnalysis' -ErrorAction SilentlyContinue).DisableAIDataAnalysis; return ($a -eq 1)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['DisableAIDataAnalysis'] -and $p.PSObject.Properties['DisableAIDataAnalysis'].Value -eq 1)",
     "applyScript": "foreach ($root in @('HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI', 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsAI')) { if (-not (Test-Path $root)) { New-Item -Path $root -Force | Out-Null }; Set-ItemProperty -Path $root -Name 'DisableAIDataAnalysis' -Value 1 -Type DWord; Set-ItemProperty -Path $root -Name 'AllowRecallEnablement' -Value 0 -Type DWord }",
     "revertScript": "foreach ($root in @('HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI', 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\WindowsAI')) { Remove-ItemProperty -Path $root -Name 'DisableAIDataAnalysis' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $root -Name 'AllowRecallEnablement' -ErrorAction SilentlyContinue }"
   },
@@ -301,7 +301,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization' -Name 'DODownloadMode' -ErrorAction SilentlyContinue).DODownloadMode; return ($v -eq 0)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['DODownloadMode'] -and $p.PSObject.Properties['DODownloadMode'].Value -eq 0)",
     "applyScript": "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization')) { New-Item -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization' -Force | Out-Null }; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization' -Name 'DODownloadMode' -Value 0 -Type DWord",
     "revertScript": "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization' -Name 'DODownloadMode' -ErrorAction SilentlyContinue"
   },
@@ -319,7 +319,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$c = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -ErrorAction SilentlyContinue).AllowCortana; $b = (Get-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer' -Name 'DisableSearchBoxSuggestions' -ErrorAction SilentlyContinue).DisableSearchBoxSuggestions; return ($c -eq 0 -and $b -eq 1)",
+    "detectScript": "$p1 = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -ErrorAction SilentlyContinue; $p2 = Get-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer' -ErrorAction SilentlyContinue; $c = if ($null -ne $p1 -and $null -ne $p1.PSObject.Properties['AllowCortana']) { $p1.PSObject.Properties['AllowCortana'].Value } else { $null }; $b = if ($null -ne $p2 -and $null -ne $p2.PSObject.Properties['DisableSearchBoxSuggestions']) { $p2.PSObject.Properties['DisableSearchBoxSuggestions'].Value } else { $null }; return ($c -eq 0 -and $b -eq 1)",
     "applyScript": "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search')) { New-Item -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Force | Out-Null }; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -Value 0 -Type DWord; if (-not (Test-Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer')) { New-Item -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer' -Name 'DisableSearchBoxSuggestions' -Value 1 -Type DWord",
     "revertScript": "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search' -Name 'AllowCortana' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path 'HKCU:\\Software\\Policies\\Microsoft\\Windows\\Explorer' -Name 'DisableSearchBoxSuggestions' -ErrorAction SilentlyContinue"
   },
@@ -337,7 +337,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent' -Name 'DisableWindowsConsumerFeatures' -ErrorAction SilentlyContinue).DisableWindowsConsumerFeatures; return ($v -eq 1)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['DisableWindowsConsumerFeatures'] -and $p.PSObject.Properties['DisableWindowsConsumerFeatures'].Value -eq 1)",
     "applyScript": "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent')) { New-Item -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent' -Force | Out-Null }; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent' -Name 'DisableWindowsConsumerFeatures' -Value 1 -Type DWord; if (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager') { Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name 'SubscribedContent-338388Enabled' -Value 0 -Type DWord; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager' -Name 'SilentInstalledAppsEnabled' -Value 0 -Type DWord }",
     "revertScript": "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent' -Name 'DisableWindowsConsumerFeatures' -ErrorAction SilentlyContinue"
   },
@@ -355,7 +355,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$m = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'MetricsReportingEnabled' -ErrorAction SilentlyContinue).MetricsReportingEnabled; $s = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'StartupBoostEnabled' -ErrorAction SilentlyContinue).StartupBoostEnabled; return ($m -eq 0 -and $s -eq 0)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -ErrorAction SilentlyContinue; $m = if ($null -ne $p -and $null -ne $p.PSObject.Properties['MetricsReportingEnabled']) { $p.PSObject.Properties['MetricsReportingEnabled'].Value } else { $null }; $s = if ($null -ne $p -and $null -ne $p.PSObject.Properties['StartupBoostEnabled']) { $p.PSObject.Properties['StartupBoostEnabled'].Value } else { $null }; return ($m -eq 0 -and $s -eq 0)",
     "applyScript": "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge')) { New-Item -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Force | Out-Null }; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'MetricsReportingEnabled' -Value 0 -Type DWord; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'StartupBoostEnabled' -Value 0 -Type DWord; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'BackgroundModeEnabled' -Value 0 -Type DWord",
     "revertScript": "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'MetricsReportingEnabled' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'StartupBoostEnabled' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' -Name 'BackgroundModeEnabled' -ErrorAction SilentlyContinue"
   },
@@ -373,7 +373,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$v = (Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Name 'Enabled' -ErrorAction SilentlyContinue).Enabled; return ($v -eq 0)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -ErrorAction SilentlyContinue; return ($null -ne $p -and $null -ne $p.PSObject.Properties['Enabled'] -and $p.PSObject.Properties['Enabled'].Value -eq 0)",
     "applyScript": "if (-not (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo')) { New-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Name 'Enabled' -Value 0 -Type DWord; if (-not (Test-Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy')) { New-Item -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Force | Out-Null }; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'TailoredExperiencesWithDiagnosticDataEnabled' -Value 0 -Type DWord",
     "revertScript": "Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo' -Name 'Enabled' -Value 1 -Type DWord; Set-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy' -Name 'TailoredExperiencesWithDiagnosticDataEnabled' -Value 1 -Type DWord"
   },
@@ -391,7 +391,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$p = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'PublishUserActivities' -ErrorAction SilentlyContinue).PublishUserActivities; $u = (Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'UploadUserActivities' -ErrorAction SilentlyContinue).UploadUserActivities; return ($p -eq 0 -and $u -eq 0)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -ErrorAction SilentlyContinue; $pa = if ($null -ne $p -and $null -ne $p.PSObject.Properties['PublishUserActivities']) { $p.PSObject.Properties['PublishUserActivities'].Value } else { $null }; $ua = if ($null -ne $p -and $null -ne $p.PSObject.Properties['UploadUserActivities']) { $p.PSObject.Properties['UploadUserActivities'].Value } else { $null }; return ($pa -eq 0 -and $ua -eq 0)",
     "applyScript": "if (-not (Test-Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System')) { New-Item -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Force | Out-Null }; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'EnableActivityFeed' -Value 0 -Type DWord; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'PublishUserActivities' -Value 0 -Type DWord; Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'UploadUserActivities' -Value 0 -Type DWord",
     "revertScript": "Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'EnableActivityFeed' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'PublishUserActivities' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' -Name 'UploadUserActivities' -ErrorAction SilentlyContinue"
   },
@@ -409,8 +409,8 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$root = 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; $active = Get-ChildItem -Path $root -ErrorAction SilentlyContinue | Where-Object { (Get-ItemProperty $_.PSPath -Name 'DhcpIPAddress' -ErrorAction SilentlyContinue).DhcpIPAddress -or (Get-ItemProperty $_.PSPath -Name 'IPAddress' -ErrorAction SilentlyContinue).IPAddress }; if (-not $active) { return $false }; $ok = $true; foreach ($if in $active) { $pr = Get-ItemProperty $if.PSPath; if ($pr.TCPNoDelay -ne 1 -or $pr.TcpAckFrequency -ne 1) { $ok = $false } }; return $ok",
-    "applyScript": "$root = 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; $active = Get-ChildItem -Path $root -ErrorAction SilentlyContinue | Where-Object { (Get-ItemProperty $_.PSPath -Name 'DhcpIPAddress' -ErrorAction SilentlyContinue).DhcpIPAddress -or (Get-ItemProperty $_.PSPath -Name 'IPAddress' -ErrorAction SilentlyContinue).IPAddress }; foreach ($if in $active) { Set-ItemProperty -Path $if.PSPath -Name 'TCPNoDelay' -Value 1 -Type DWord; Set-ItemProperty -Path $if.PSPath -Name 'TcpAckFrequency' -Value 1 -Type DWord }",
+    "detectScript": "$root = 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; $active = @(Get-ChildItem -Path $root -ErrorAction SilentlyContinue | Where-Object { $ip = Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue; $null -ne $ip -and (($null -ne $ip.PSObject.Properties['DhcpIPAddress'] -and -not [string]::IsNullOrWhiteSpace([string]$ip.PSObject.Properties['DhcpIPAddress'].Value)) -or ($null -ne $ip.PSObject.Properties['IPAddress'] -and $null -ne $ip.PSObject.Properties['IPAddress'].Value)) }); if ($active.Count -eq 0) { return $false }; foreach ($if in $active) { $pr = Get-ItemProperty $if.PSPath -ErrorAction SilentlyContinue; $nagle = if ($pr -and $pr.PSObject.Properties['TCPNoDelay']) { $pr.PSObject.Properties['TCPNoDelay'].Value } else { $null }; $ack = if ($pr -and $pr.PSObject.Properties['TcpAckFrequency']) { $pr.PSObject.Properties['TcpAckFrequency'].Value } else { $null }; if ($nagle -ne 1 -or $ack -ne 1) { return $false } }; return $true",
+    "applyScript": "$root = 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; $active = @(Get-ChildItem -Path $root -ErrorAction SilentlyContinue | Where-Object { $ip = Get-ItemProperty $_.PSPath -ErrorAction SilentlyContinue; $null -ne $ip -and (($null -ne $ip.PSObject.Properties['DhcpIPAddress'] -and -not [string]::IsNullOrWhiteSpace([string]$ip.PSObject.Properties['DhcpIPAddress'].Value)) -or ($null -ne $ip.PSObject.Properties['IPAddress'] -and $null -ne $ip.PSObject.Properties['IPAddress'].Value)) }); foreach ($if in $active) { Set-ItemProperty -Path $if.PSPath -Name 'TCPNoDelay' -Value 1 -Type DWord; Set-ItemProperty -Path $if.PSPath -Name 'TcpAckFrequency' -Value 1 -Type DWord }",
     "revertScript": "$root = 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; Get-ChildItem -Path $root -ErrorAction SilentlyContinue | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -ErrorAction SilentlyContinue }"
   },
   {
@@ -427,8 +427,8 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile' -ErrorAction SilentlyContinue; return ($null -ne $p -and ([uint32]$p.NetworkThrottlingIndex -eq 4294967295))",
-    "applyScript": "$path = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile'; Set-ItemProperty -Path $path -Name 'NetworkThrottlingIndex' -Value ([uint32]4294967295) -Type DWord; Set-ItemProperty -Path $path -Name 'SystemResponsiveness' -Value 10 -Type DWord",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile' -ErrorAction SilentlyContinue; if ($null -ne $p -and $null -ne $p.PSObject.Properties['NetworkThrottlingIndex']) { $val = [int64]$p.PSObject.Properties['NetworkThrottlingIndex'].Value; return ($val -eq -1 -or $val -eq 4294967295) }; return $false",
+    "applyScript": "$path = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile'; Set-ItemProperty -Path $path -Name 'NetworkThrottlingIndex' -Value ([int]-1) -Type DWord; Set-ItemProperty -Path $path -Name 'SystemResponsiveness' -Value 10 -Type DWord",
     "revertScript": "$path = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile'; Set-ItemProperty -Path $path -Name 'NetworkThrottlingIndex' -Value 10 -Type DWord; Set-ItemProperty -Path $path -Name 'SystemResponsiveness' -Value 20 -Type DWord"
   },
   {
@@ -445,7 +445,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }; if (-not $adapters) { return $false }; foreach ($a in $adapters) { $dns = (Get-DnsClientServerAddress -InterfaceIndex $a.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).ServerAddresses; if ($dns -contains '1.1.1.1') { return $true } }; return $false",
+    "detectScript": "$adapters = @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }); if ($adapters.Count -eq 0) { return $false }; foreach ($a in $adapters) { $dnsObj = Get-DnsClientServerAddress -InterfaceIndex $a.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue; if ($null -ne $dnsObj -and $null -ne $dnsObj.PSObject.Properties['ServerAddresses'] -and ($dnsObj.ServerAddresses -contains '1.1.1.1')) { return $true } }; return $false",
     "applyScript": "$adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }; foreach ($a in $adapters) { Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ServerAddresses @('1.1.1.1','1.0.0.1') -ErrorAction SilentlyContinue }; Clear-DnsClientCache",
     "revertScript": "$adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }; foreach ($a in $adapters) { Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ResetServerAddresses -ErrorAction SilentlyContinue }; Clear-DnsClientCache"
   },
@@ -463,7 +463,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }; if (-not $adapters) { return $false }; foreach ($a in $adapters) { $dns = (Get-DnsClientServerAddress -InterfaceIndex $a.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).ServerAddresses; if ($dns -contains '94.140.14.14') { return $true } }; return $false",
+    "detectScript": "$adapters = @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }); if ($adapters.Count -eq 0) { return $false }; foreach ($a in $adapters) { $dnsObj = Get-DnsClientServerAddress -InterfaceIndex $a.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue; if ($null -ne $dnsObj -and $null -ne $dnsObj.PSObject.Properties['ServerAddresses'] -and ($dnsObj.ServerAddresses -contains '94.140.14.14')) { return $true } }; return $false",
     "applyScript": "$adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }; foreach ($a in $adapters) { Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ServerAddresses @('94.140.14.14','94.140.15.15') -ErrorAction SilentlyContinue }; Clear-DnsClientCache",
     "revertScript": "$adapters = Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }; foreach ($a in $adapters) { Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ResetServerAddresses -ErrorAction SilentlyContinue }; Clear-DnsClientCache"
   },
@@ -481,7 +481,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters' -ErrorAction SilentlyContinue; return ($null -ne $p -and $p.MaxNegativeCacheTtl -eq 0 -and $p.MaxCacheTtl -eq 3600)",
+    "detectScript": "$p = Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters' -ErrorAction SilentlyContinue; $neg = if ($null -ne $p -and $null -ne $p.PSObject.Properties['MaxNegativeCacheTtl']) { $p.PSObject.Properties['MaxNegativeCacheTtl'].Value } else { $null }; $pos = if ($null -ne $p -and $null -ne $p.PSObject.Properties['MaxCacheTtl']) { $p.PSObject.Properties['MaxCacheTtl'].Value } else { $null }; return ($neg -eq 0 -and $pos -eq 3600)",
     "applyScript": "$path = 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters'; Set-ItemProperty -Path $path -Name 'MaxNegativeCacheTtl' -Value 0 -Type DWord; Set-ItemProperty -Path $path -Name 'MaxCacheTtl' -Value 3600 -Type DWord",
     "revertScript": "$path = 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters'; Remove-ItemProperty -Path $path -Name 'MaxNegativeCacheTtl' -ErrorAction SilentlyContinue; Remove-ItemProperty -Path $path -Name 'MaxCacheTtl' -ErrorAction SilentlyContinue"
   },
@@ -607,7 +607,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$pkg = Get-AppxPackage -Name 'Microsoft.549981C3F5F10' -ErrorAction SilentlyContinue; return ($null -eq $pkg)",
+    "detectScript": "$pkgs = @(Get-AppxPackage -Name 'Microsoft.549981C3F5F10' -ErrorAction SilentlyContinue); return ($pkgs.Count -eq 0)",
     "applyScript": "Get-AppxPackage -Name 'Microsoft.549981C3F5F10' -ErrorAction SilentlyContinue | Remove-AppxPackage -ErrorAction SilentlyContinue",
     "revertScript": "Get-AppxPackage -AllUsers -Name 'Microsoft.549981C3F5F10' -ErrorAction SilentlyContinue | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \"$($_.InstallLocation)\\AppXManifest.xml\" -ErrorAction SilentlyContinue }"
   },
@@ -661,7 +661,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$pkg = Get-AppxPackage -Name 'Clipchamp.Clipchamp' -ErrorAction SilentlyContinue; return ($null -eq $pkg)",
+    "detectScript": "$pkgs = @(Get-AppxPackage -Name 'Clipchamp.Clipchamp' -ErrorAction SilentlyContinue); return ($pkgs.Count -eq 0)",
     "applyScript": "Get-AppxPackage -Name 'Clipchamp.Clipchamp' -ErrorAction SilentlyContinue | Remove-AppxPackage -ErrorAction SilentlyContinue",
     "revertScript": "Get-AppxPackage -AllUsers -Name 'Clipchamp.Clipchamp' -ErrorAction SilentlyContinue | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \"$($_.InstallLocation)\\AppXManifest.xml\" -ErrorAction SilentlyContinue }"
   },
@@ -679,7 +679,7 @@
     "maxBuild": null,
     "chassisWarning": "None",
     "storageSafe": "All",
-    "detectScript": "$pkg = Get-AppxPackage -Name 'Microsoft.MicrosoftSolitaireCollection' -ErrorAction SilentlyContinue; return ($null -eq $pkg)",
+    "detectScript": "$pkgs = @(Get-AppxPackage -Name 'Microsoft.MicrosoftSolitaireCollection' -ErrorAction SilentlyContinue); return ($pkgs.Count -eq 0)",
     "applyScript": "Get-AppxPackage -Name 'Microsoft.MicrosoftSolitaireCollection' -ErrorAction SilentlyContinue | Remove-AppxPackage -ErrorAction SilentlyContinue",
     "revertScript": "Get-AppxPackage -AllUsers -Name 'Microsoft.MicrosoftSolitaireCollection' -ErrorAction SilentlyContinue | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \"$($_.InstallLocation)\\AppXManifest.xml\" -ErrorAction SilentlyContinue }"
   },

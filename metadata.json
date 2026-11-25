@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "WinForge Engine",
+  "description": "Suite modular de optimización, auditoría de hardware y privacidad para Windows 10 y 11 en PowerShell y WPF nativo, generada mediante Inteligencia Artificial con el Creador de Apps de Google AI Studio.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
