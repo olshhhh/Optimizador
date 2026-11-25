@@ -1,15 +1,20 @@
 [
   {
     "id": "Legacy",
-    "name": "PC Antiguo (Legacy)",
-    "description": "Rescate para equipos antiguos o con <=8 GB RAM/HDD: desactiva transparencias, animaciones, Edge StartupBoost, NTFS LastAccess, IA/Copilot y bloatware protegiendo SysMain y Memory Compression.",
+    "name": "PC Antiguo (Bajos Recursos)",
+    "description": "Optimizado para equipos con HDD, 4-8 GB RAM o CPU antiguo: elimina Widgets/WebView2, apps en segundo plano, Edge StartupBoost, transparencias, animaciones y NTFS LastAccess protegiendo SysMain y Memory Compression.",
     "tweakIds": [
       "PERF_WAIT_TO_KILL",
+      "PERF_MENU_SHOW_DELAY",
+      "PERF_STARTUP_DELAY_OFF",
       "PERF_NTFS_LAST_ACCESS",
       "PERF_TRANSPARENCY_OFF",
       "PERF_VISUAL_EFFECTS",
       "PERF_GAME_DVR",
       "PRIV_DIAGTRACK",
+      "SVC_WAP_PUSH",
+      "PRIV_WIDGETS_NEWS_OFF",
+      "PRIV_BACKGROUND_APPS_OFF",
       "PRIV_WIN11_COPILOT",
       "PRIV_WIN11_AI_RECALL",
       "PRIV_DELIVERY_OPT",
@@ -26,22 +31,28 @@
       "DEBLOAT_XBOX_APPS",
       "DEBLOAT_BING_WEATHER",
       "DEBLOAT_CLIPCHAMP",
-      "DEBLOAT_SOLITAIRE"
+      "DEBLOAT_SOLITAIRE",
+      "DEBLOAT_HELP_FEEDBACK"
     ]
   },
   {
     "id": "Gaming",
     "name": "Gaming",
-    "description": "Minimiza latencia de red y GPU (HAGS, P-Cores, GameDVR, Nagle, NetworkThrottling, DNS Cloudflare) respetando las apps de Xbox y guardrails de disco.",
+    "description": "Maximiza respuesta y estabilidad en juegos (HAGS, Game Mode ON, P-Cores, GameDVR OFF, Nagle, NetworkThrottling, DNS Cloudflare) manteniendo Xbox Apps y guardrails de disco.",
     "tweakIds": [
       "PERF_SYSMAIN",
       "PERF_WAIT_TO_KILL",
+      "PERF_MENU_SHOW_DELAY",
+      "PERF_STARTUP_DELAY_OFF",
       "PERF_NTFS_LAST_ACCESS",
       "PERF_GAME_DVR",
+      "PERF_GAME_MODE_ON",
       "PERF_HAGS_ON",
       "PERF_HYBRID_PCORE",
       "PERF_POWER_THROTTLING",
       "PRIV_DIAGTRACK",
+      "SVC_WAP_PUSH",
+      "PRIV_WIDGETS_NEWS_OFF",
       "PRIV_WIN11_COPILOT",
       "PRIV_WIN11_AI_RECALL",
       "PRIV_DELIVERY_OPT",
@@ -58,19 +69,25 @@
       "DEBLOAT_CORTANA_APP",
       "DEBLOAT_BING_WEATHER",
       "DEBLOAT_CLIPCHAMP",
-      "DEBLOAT_SOLITAIRE"
+      "DEBLOAT_SOLITAIRE",
+      "DEBLOAT_HELP_FEEDBACK"
     ]
   },
   {
     "id": "Trabajo",
-    "name": "Trabajo",
-    "description": "Endurecimiento de privacidad 24H2+, eliminación de distracciones y estabilidad DNS manteniendo intactas la cola de impresión y las búsquedas.",
+    "name": "Uso Diario / Oficina",
+    "description": "Sistema limpio, silencioso y estable para estudio o trabajo: reduce telemetría, Widgets, Copilot, Recall y apps en 2º plano manteniendo intactas impresoras y búsqueda local.",
     "tweakIds": [
       "PERF_WAIT_TO_KILL",
+      "PERF_MENU_SHOW_DELAY",
+      "PERF_STARTUP_DELAY_OFF",
       "PERF_NTFS_LAST_ACCESS",
       "PERF_GAME_DVR",
       "PERF_WIN11_MENU",
       "PRIV_DIAGTRACK",
+      "SVC_WAP_PUSH",
+      "PRIV_WIDGETS_NEWS_OFF",
+      "PRIV_BACKGROUND_APPS_OFF",
       "PRIV_WIN11_COPILOT",
       "PRIV_WIN11_AI_RECALL",
       "PRIV_DELIVERY_OPT",
@@ -86,18 +103,23 @@
       "DEBLOAT_CORTANA_APP",
       "DEBLOAT_XBOX_APPS",
       "DEBLOAT_BING_WEATHER",
-      "DEBLOAT_SOLITAIRE"
+      "DEBLOAT_SOLITAIRE",
+      "DEBLOAT_HELP_FEEDBACK"
     ]
   },
   {
     "id": "Laptop",
-    "name": "Laptop",
-    "description": "Optimización segura para portátiles: reduce telemetría, IA y procesos superfluos preservando Power Throttling, Hibernación e Impresión.",
+    "name": "Laptop / Batería",
+    "description": "Optimización equilibrada para portátiles: frena apps UWP en segundo plano, Widgets y telemetría para ganar autonomía sin tocar Power Throttling, Hibernación ni Impresión.",
     "tweakIds": [
       "PERF_WAIT_TO_KILL",
+      "PERF_MENU_SHOW_DELAY",
       "PERF_NTFS_LAST_ACCESS",
       "PERF_GAME_DVR",
       "PRIV_DIAGTRACK",
+      "SVC_WAP_PUSH",
+      "PRIV_WIDGETS_NEWS_OFF",
+      "PRIV_BACKGROUND_APPS_OFF",
       "PRIV_WIN11_COPILOT",
       "PRIV_WIN11_AI_RECALL",
       "PRIV_DELIVERY_OPT",
@@ -112,21 +134,25 @@
       "DEBLOAT_CORTANA_APP",
       "DEBLOAT_BING_WEATHER",
       "DEBLOAT_CLIPCHAMP",
-      "DEBLOAT_SOLITAIRE"
+      "DEBLOAT_SOLITAIRE",
+      "DEBLOAT_HELP_FEEDBACK"
     ]
   },
   {
     "id": "Extremo",
     "name": "Extremo",
-    "description": "Máxima optimización y debloat en todas las categorías técnicas (sigue respetando el bloqueo obligatorio de SysMain en HDD y Memory Compression en <=8 GB RAM).",
+    "description": "Máxima optimización y debloat disponible (sigue respetando el bloqueo obligatorio de SysMain en HDD y Memory Compression en <=8 GB RAM).",
     "tweakIds": [
       "PERF_SYSMAIN",
       "PERF_WAIT_TO_KILL",
+      "PERF_MENU_SHOW_DELAY",
+      "PERF_STARTUP_DELAY_OFF",
       "PERF_NTFS_LAST_ACCESS",
       "PERF_TRANSPARENCY_OFF",
       "PERF_SEARCH_INDEXING",
       "PERF_VISUAL_EFFECTS",
       "PERF_GAME_DVR",
+      "PERF_GAME_MODE_ON",
       "PERF_HAGS_ON",
       "PERF_HYBRID_PCORE",
       "PERF_MEM_COMPRESSION_OFF",
@@ -134,6 +160,9 @@
       "PERF_HIBERNATE",
       "PERF_WIN11_MENU",
       "PRIV_DIAGTRACK",
+      "SVC_WAP_PUSH",
+      "PRIV_WIDGETS_NEWS_OFF",
+      "PRIV_BACKGROUND_APPS_OFF",
       "PRIV_WIN11_COPILOT",
       "PRIV_WIN11_AI_RECALL",
       "PRIV_DELIVERY_OPT",
@@ -156,7 +185,8 @@
       "DEBLOAT_XBOX_APPS",
       "DEBLOAT_BING_WEATHER",
       "DEBLOAT_CLIPCHAMP",
-      "DEBLOAT_SOLITAIRE"
+      "DEBLOAT_SOLITAIRE",
+      "DEBLOAT_HELP_FEEDBACK"
     ]
   }
 ]

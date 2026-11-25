@@ -104,7 +104,8 @@ Si no quieres elegir ajuste por ajuste, puedes usar el botón **Asistente Guiado
 
 ## Respaldos, Logs y Reversión Manual (Rollback)
 
-- **Dentro de la aplicación:** Usa el botón **Deshacer Todo / Revertir** (arriba a la derecha) o el botón **Revertir** individual en cualquier tarjeta.
+- **Dentro de la aplicación:** Usa el botón **Revertir Todo** (arriba a la derecha), **Revertir** en cada ajuste, o **2º Plano / Después** para minimizar o dejar pendientes en cola (`%LOCALAPPDATA%\WinForge\pending_queue.json`).
+- **Interfaz Monocromática Ligera:** Diseñada sin sombras pesadas (`DropShadowEffect`) y con pinceles congelados para gastar la mínima RAM/GPU en PCs antiguos, con botones nativos para Minimizar y Maximizar, además de un panel inferior de **Actividad y Procesos** en vivo.
 - **Respaldos manuales en disco:** Cada sesión guarda archivos `.reg` originales y un manifiesto en:
   ```text
   %LOCALAPPDATA%\WinForge\Backups\<Fecha_Hora>\Registry\
@@ -121,10 +122,10 @@ Si no quieres elegir ajuste por ajuste, puedes usar el botón **Asistente Guiado
 
 El repositorio incluye el script `Tests/Verify-WinForge.ps1` (sin dependencias externas como Pester) para validar de forma segura y en **solo lectura** (sin modificar el Registro ni servicios de tu PC):
 1. Que `Data/tweaks.json` y `Data/profiles.json` sean JSON válidos, sin IDs duplicados ni referencias rotas.
-2. Que `UI/MainWindow.xaml` y el XAML del Asistente Guiado en `UI/GuiController.psm1` se parseen correctamente en WPF.
+2. Que `UI/MainWindow.xaml` y las ventanas emergentes en `UI/GuiController.psm1` se parseen correctamente en WPF.
 3. Que todos los módulos `.psm1` se importen sin errores bajo `Set-StrictMode -Version Latest`.
 4. Que `Get-WinForgeHardwareProfile` y `Resolve-WinForgeTweakCompatibility` evalúen tu hardware real correctamente.
-5. Que los 42 `detectScript` de `Data/tweaks.json` se ejecuten en modo solo lectura sin lanzar excepciones bajo `Set-StrictMode -Version Latest`.
+5. Que los 49 `detectScript` de `Data/tweaks.json` se ejecuten en modo solo lectura sin lanzar excepciones bajo `Set-StrictMode -Version Latest`.
 
 Para ejecutar las pruebas en Windows PowerShell:
 
@@ -138,7 +139,7 @@ powershell -NoProfile -STA -ExecutionPolicy Bypass -File .\Tests\Verify-WinForge
 
 ```text
 /
-├── bootstrap.ps1                 # Punto de entrada Zero-Install (UAC, TLS 1.2, STA, limpieza en finally)
+├── bootstrap.ps1                 # Punto de entrada Zero-Install (UAC, TLS 1.2, STA, Bypass temporal)
 ├── WinForge.ps1                  # Orquestador principal (detección GUI STA vs CLI/WinPE, log de errores)
 ├── Core/
 │   ├── RunspaceManager.psm1      # Motor RunspacePool + cola LogQueue/DispatcherTimer thread-safe
@@ -146,12 +147,12 @@ powershell -NoProfile -STA -ExecutionPolicy Bypass -File .\Tests\Verify-WinForge
 │   ├── SafetyManager.psm1        # Puntos de restauración, exportación .reg y motor Rollback
 │   └── TweakEngine.psm1          # Carga JSON, ejecución idempotente y Startup Apps reversible
 ├── UI/
-│   ├── MainWindow.xaml           # Interfaz Fluent Dark Mode WPF pura (sin x:Class ni DLLs externas)
-│   ├── GuiController.psm1        # Controlador WPF, Asistente Guiado y Gestor de Inicio
+│   ├── MainWindow.xaml           # Interfaz monocromática ligera WPF pura (Minimizar/Maximizar, sin x:Class)
+│   ├── GuiController.psm1        # Controlador WPF, Asistente, 2º Plano, Cola Pendientes y Gestor Inicio
 │   └── CliController.psm1        # Menú alternativo y Asistente para consolas headless o WinPE
 ├── Data/
-│   ├── tweaks.json               # Catálogo de 42 ajustes documentados con nivel de riesgo
-│   └── profiles.json             # Perfiles Legacy, Gaming, Trabajo, Laptop y Extremo
+│   ├── tweaks.json               # Catálogo de 49 ajustes documentados con nivel de riesgo
+│   └── profiles.json             # Perfiles Legacy, Gaming, Oficina, Laptop y Extremo
 ├── Tests/
 │   └── Verify-WinForge.ps1       # Suite de pruebas automatizadas en modo solo lectura para Windows
 ├── LICENSE                       # Licencia MIT

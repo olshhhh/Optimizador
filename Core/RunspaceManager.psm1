@@ -3,7 +3,7 @@
     WinForge Engine - RunspaceManager.
 .DESCRIPTION
     Motor de ejecución asíncrona basado en RunspacePool y Synchronized Hashtable ($syncHash)
-    con soporte thread-safe para Dispatcher de WPF. Evita bloqueos del hilo de interfaz.
+    con soporte thread-safe para DispatcherTimer de WPF, cola de logs y progreso detallado.
 #>
 
 Set-StrictMode -Version Latest
@@ -27,16 +27,19 @@ function Initialize-WinForgeRunspacePool {
     $pool.Open()
 
     $syncHash = [hashtable]::Synchronized(@{
-        Window         = $null
-        Controls       = [hashtable]::Synchronized(@{})
-        IsBusy         = $false
-        CancelFlag     = $false
-        ActiveJobs     = [System.Collections.ArrayList]::Synchronized([System.Collections.ArrayList]::new())
-        LogQueue       = [System.Collections.Concurrent.ConcurrentQueue[string]]::new()
-        ProgressDirty  = $false
-        ProgressPct    = 0
-        ProgressDetail = ''
-        RunspacePool   = $pool
+        Window           = $null
+        Controls         = [hashtable]::Synchronized(@{})
+        IsBusy           = $false
+        CancelFlag       = $false
+        ActiveJobs       = [System.Collections.ArrayList]::Synchronized([System.Collections.ArrayList]::new())
+        LogQueue         = [System.Collections.Concurrent.ConcurrentQueue[string]]::new()
+        ProgressDirty    = $false
+        ProgressPct      = 0
+        ProgressDetail   = ''
+        ProgressStep     = ''
+        ProgressStats    = ''
+        BaseWindowTitle  = 'WinForge Engine'
+        RunspacePool     = $pool
     })
 
     return [PSCustomObject]@{
@@ -85,11 +88,14 @@ function Start-WinForgeJobMonitor {
     }
 
     $timer = [System.Windows.Threading.DispatcherTimer]::new()
-    $timer.Interval = [TimeSpan]::FromMilliseconds(100)
-
-    $syncHash = $RunspaceContext.SyncHash
+    $timer.Interval = [TimeSpan]::FromMilliseconds(120)
+    $timer.Tag = $RunspaceContext.SyncHash
 
     $timer.Add_Tick({
+        param($sender, $e)
+        $syncHash = $sender.Tag
+        if ($null -eq $syncHash) { return }
+
         if ($null -ne $syncHash.LogQueue -and -not $syncHash.LogQueue.IsEmpty) {
             $console = $syncHash.Controls['TxtConsoleLog']
             $msgOut = ''
@@ -107,8 +113,22 @@ function Start-WinForgeJobMonitor {
             $syncHash.ProgressDirty = $false
             $pb = $syncHash.Controls['MainProgressBar']
             $pd = $syncHash.Controls['TxtProgressDetail']
+            $ps = $syncHash.Controls['TxtProcessCurrentStep']
+            $pt = $syncHash.Controls['TxtProcessStats']
             if ($null -ne $pb) { $pb.Value = $syncHash.ProgressPct }
-            if ($null -ne $pd) { $pd.Text = $syncHash.ProgressDetail }
+            if ($null -ne $pd -and -not [string]::IsNullOrEmpty($syncHash.ProgressDetail)) { $pd.Text = $syncHash.ProgressDetail }
+            if ($null -ne $ps -and -not [string]::IsNullOrEmpty($syncHash.ProgressStep)) { $ps.Text = $syncHash.ProgressStep }
+            if ($null -ne $pt -and -not [string]::IsNullOrEmpty($syncHash.ProgressStats)) { $pt.Text = $syncHash.ProgressStats }
+
+            $win = $syncHash.Window
+            if ($null -ne $win) {
+                if ($syncHash.IsBusy -and $win.WindowState -eq [System.Windows.WindowState]::Minimized) {
+                    $win.Title = "[$($syncHash.ProgressPct)%] $($syncHash.BaseWindowTitle) — Ejecutando en 2º plano"
+                }
+                elseif (-not $syncHash.IsBusy -and $win.Title -ne $syncHash.BaseWindowTitle) {
+                    $win.Title = $syncHash.BaseWindowTitle
+                }
+            }
         }
 
         $jobs = $syncHash.ActiveJobs
@@ -151,7 +171,7 @@ function Start-WinForgeJobMonitor {
                 $job.PowerShell.Dispose()
             }
         }
-    }.GetNewClosure())
+    })
 
     $timer.Start()
     $RunspaceContext.Timer = $timer

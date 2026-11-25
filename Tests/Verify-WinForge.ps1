@@ -148,6 +148,17 @@ Invoke-TestCase 'Parseo WPF XAML de MainWindow.xaml y Asistente Guiado' {
     else {
         throw 'No se pudo extraer $wizXaml de GuiController.psm1'
     }
+
+    if ($guiText -match "(?s)\`$dlgXaml = @'\r?\n(.*?)\r?\n'@") {
+        $dlgWin = [System.Windows.Markup.XamlReader]::Parse($Matches[1])
+        if ($null -eq $dlgWin) {
+            throw 'dlgXaml devolvió null al parsear'
+        }
+        $dlgWin.Close()
+    }
+    else {
+        throw 'No se pudo extraer $dlgXaml de GuiController.psm1'
+    }
 }
 
 Invoke-TestCase 'Importación de todos los módulos Core y UI bajo StrictMode' {

@@ -1,50 +1,46 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WinForge Engine — Optimización Adaptativa, Auditoría y Telemetría Windows"
-        Width="1300"
-        Height="840"
-        MinWidth="1060"
-        MinHeight="700"
+        Title="WinForge Engine"
+        Width="1140"
+        Height="750"
+        MinWidth="860"
+        MinHeight="560"
+        ResizeMode="CanResize"
+        WindowStyle="SingleBorderWindow"
         WindowStartupLocation="CenterScreen"
-        Background="#202020"
-        Foreground="#FFFFFF"
+        Background="#121212"
+        Foreground="#F2F2F2"
         FontFamily="Segoe UI Variable Text, Segoe UI">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="BgPrimary" Color="#202020"/>
-        <SolidColorBrush x:Key="BgCard" Color="#2D2D2D"/>
-        <SolidColorBrush x:Key="BgCardHover" Color="#353535"/>
-        <SolidColorBrush x:Key="BorderSubtle" Color="#3F3F3F"/>
-        <SolidColorBrush x:Key="AccentBlue" Color="#0078D4"/>
-        <SolidColorBrush x:Key="AccentBlueHover" Color="#1E90FF"/>
-        <SolidColorBrush x:Key="TextPrimary" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="TextSecondary" Color="#A0A0A0"/>
-        <SolidColorBrush x:Key="DangerRed" Color="#E81123"/>
-        <SolidColorBrush x:Key="WarningOrange" Color="#FF8C00"/>
-        <SolidColorBrush x:Key="SuccessGreen" Color="#10B981"/>
+        <SolidColorBrush x:Key="BgBase" Color="#121212"/>
+        <SolidColorBrush x:Key="BgPanel" Color="#1A1A1A"/>
+        <SolidColorBrush x:Key="BgCard" Color="#1F1F1F"/>
+        <SolidColorBrush x:Key="BorderLine" Color="#2E2E2E"/>
+        <SolidColorBrush x:Key="BorderStrong" Color="#4A4A4A"/>
+        <SolidColorBrush x:Key="TextMain" Color="#F2F2F2"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#9A9A9A"/>
 
-        <DropShadowEffect x:Key="CardShadow" BlurRadius="12" ShadowDepth="2" Opacity="0.35" Color="#000000"/>
-
-        <Style x:Key="FluentPrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource AccentBlue}"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Style x:Key="MonoPrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#EDEDED"/>
+            <Setter Property="Foreground" Value="#121212"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="14,7"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="RootBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="RootBorder" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="RootBorder" Property="Background" Value="#1E90FF"/>
+                                <Setter TargetName="RootBorder" Property="Background" Value="#FFFFFF"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.45"/>
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.35"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -52,56 +48,57 @@
             </Setter>
         </Style>
 
-        <Style x:Key="FluentSecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#2D2D2D"/>
+        <Style x:Key="MonoSecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#242424"/>
+            <Setter Property="Foreground" Value="#E6E6E6"/>
+            <Setter Property="BorderBrush" Value="#3A3A3A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="11,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="RootBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RootBorder" Property="Background" Value="#323232"/>
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="#555555"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.35"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MonoOutlineDangerButton" TargetType="Button">
+            <Setter Property="Background" Value="#1A1A1A"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#3F3F3F"/>
+            <Setter Property="BorderBrush" Value="#6E6E6E"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="12,6"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="RootBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="RootBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="RootBorder" Property="Background" Value="#3A3A3A"/>
+                                <Setter TargetName="RootBorder" Property="Background" Value="#353535"/>
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="#FFFFFF"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.45"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="FluentDangerButton" TargetType="Button">
-            <Setter Property="Background" Value="#3A181B"/>
-            <Setter Property="Foreground" Value="#FF6B6B"/>
-            <Setter Property="BorderBrush" Value="#E81123"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="RootBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="RootBorder" Property="Background" Value="#E81123"/>
-                                <Setter Property="Foreground" Value="#FFFFFF"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.45"/>
+                                <Setter TargetName="RootBorder" Property="Opacity" Value="0.35"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -111,22 +108,22 @@
 
         <Style x:Key="NavCategoryButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#D0D0D0"/>
-            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="Foreground" Value="#BDBDBD"/>
+            <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Padding" Value="14,9"/>
+            <Setter Property="Padding" Value="10,7"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="NavBorder" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <Border x:Name="NavBorder" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="NavBorder" Property="Background" Value="#2D2D2D"/>
+                                <Setter TargetName="NavBorder" Property="Background" Value="#262626"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -135,15 +132,16 @@
         </Style>
     </Window.Resources>
 
-    <Grid Margin="18">
+    <Grid Margin="14">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="180"/>
+            <RowDefinition Height="205"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="8" Padding="18,14" Effect="{StaticResource CardShadow}">
+        <!-- Cabecera compacta monocromática -->
+        <Border Grid.Row="0" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="6" Padding="14,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -152,128 +150,151 @@
 
                 <StackPanel Grid.Column="0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Background="#0078D4" CornerRadius="6" Width="32" Height="32" Margin="0,0,12,0">
-                            <TextBlock Text="WF" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="#EDEDED" CornerRadius="4" Width="26" Height="26" Margin="0,0,10,0">
+                            <TextBlock Text="WF" FontWeight="Bold" FontSize="12" Foreground="#121212" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel>
-                            <TextBlock Text="WinForge Engine" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF"/>
-                            <TextBlock Text="Optimización Adaptativa (PC Antiguo y Moderno) • Seguridad por Diseño • Asíncrono" FontSize="12" Foreground="#A0A0A0"/>
-                        </StackPanel>
+                        <TextBlock Text="WinForge Engine" FontSize="17" FontWeight="Bold" Foreground="#F2F2F2" VerticalAlignment="Center"/>
+                        <TextBlock Text="• Monocromo Ligero (PC Antiguo y Moderno)" FontSize="12" Foreground="#8E8E8E" VerticalAlignment="Center" Margin="8,1,0,0"/>
                     </StackPanel>
 
-                    <WrapPanel Margin="0,12,0,0">
-                        <Border Background="#202020" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,4">
-                            <TextBlock x:Name="TxtHardwareOS" Text="OS: Cargando..." FontSize="12" Foreground="#FFFFFF"/>
+                    <WrapPanel Margin="0,8,0,0">
+                        <Border Background="#141414" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,2">
+                            <TextBlock x:Name="TxtHardwareOS" Text="OS: ..." FontSize="11.5" Foreground="#E0E0E0"/>
                         </Border>
-                        <Border Background="#202020" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,4">
-                            <TextBlock x:Name="TxtHardwareCPU" Text="CPU: Cargando..." FontSize="12" Foreground="#A0A0A0"/>
+                        <Border Background="#141414" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,2">
+                            <TextBlock x:Name="TxtHardwareCPU" Text="CPU: ..." FontSize="11.5" Foreground="#A0A0A0"/>
                         </Border>
-                        <Border Background="#202020" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,4">
-                            <TextBlock x:Name="TxtHardwareRAM" Text="RAM: Cargando..." FontSize="12" Foreground="#A0A0A0"/>
+                        <Border Background="#141414" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,2">
+                            <TextBlock x:Name="TxtHardwareRAM" Text="RAM: ..." FontSize="11.5" Foreground="#A0A0A0"/>
                         </Border>
-                        <Border x:Name="BadgeStorage" Background="#202020" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,4">
-                            <TextBlock x:Name="TxtHardwareStorage" Text="Disco C:: Cargando..." FontSize="12" Foreground="#1E90FF" FontWeight="SemiBold"/>
+                        <Border x:Name="BadgeStorage" Background="#141414" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,2">
+                            <TextBlock x:Name="TxtHardwareStorage" Text="Disco: ..." FontSize="11.5" Foreground="#E0E0E0"/>
                         </Border>
-                        <Border x:Name="BadgeChassis" Background="#202020" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,4">
-                            <TextBlock x:Name="TxtHardwareChassis" Text="Chasis: Cargando..." FontSize="12" Foreground="#FFFFFF"/>
+                        <Border x:Name="BadgeChassis" Background="#141414" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,2">
+                            <TextBlock x:Name="TxtHardwareChassis" Text="Equipo: ..." FontSize="11.5" Foreground="#A0A0A0"/>
                         </Border>
                     </WrapPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="BtnGuidedWizard" Content="Asistente Guiado" Style="{StaticResource FluentPrimaryButton}" Margin="0,0,8,0"/>
-                        <Button x:Name="BtnRefreshStatus" Content="Re-auditar" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,8,0"/>
-                        <Button x:Name="BtnRollbackAll" Content="Deshacer Todo / Revertir" Style="{StaticResource FluentDangerButton}"/>
+                        <Button x:Name="BtnGuidedWizard" Content="Asistente" Style="{StaticResource MonoPrimaryButton}" Margin="0,0,6,0"/>
+                        <Button x:Name="BtnBackgroundMode" Content="2º Plano" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,6,0" ToolTip="Minimiza la ventana y continúa ejecutando tareas en segundo plano"/>
+                        <Button x:Name="BtnRefreshStatus" Content="Re-auditar" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,6,0"/>
+                        <Button x:Name="BtnRollbackAll" Content="Revertir Todo" Style="{StaticResource MonoOutlineDangerButton}"/>
                     </StackPanel>
-                    <TextBlock x:Name="TxtSessionStatus" Text="Estado: Listo" FontSize="11.5" Foreground="#A0A0A0" HorizontalAlignment="Right" Margin="0,8,0,0"/>
+                    <TextBlock x:Name="TxtSessionStatus" Text="Estado: Listo" FontSize="11" Foreground="#9A9A9A" HorizontalAlignment="Right" Margin="0,6,0,0"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Background="#252525" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,12,0,12">
+        <!-- Barra de Perfiles y Acciones -->
+        <Border Grid.Row="1" Background="#161616" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,10,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Perfiles:" FontSize="13" FontWeight="SemiBold" Foreground="#A0A0A0" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnProfileLegacy" Content="PC Antiguo" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnProfileGaming" Content="Gaming" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnProfileTrabajo" Content="Trabajo" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnProfileLaptop" Content="Laptop" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnProfileExtremo" Content="Extremo" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,12,0"/>
+                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="Perfiles:" FontSize="12" FontWeight="SemiBold" Foreground="#9A9A9A" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnProfileLegacy" Content="PC Antiguo" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,5,0"/>
+                    <Button x:Name="BtnProfileTrabajo" Content="Oficina" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,5,0"/>
+                    <Button x:Name="BtnProfileLaptop" Content="Laptop" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,5,0"/>
+                    <Button x:Name="BtnProfileGaming" Content="Gaming" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,5,0"/>
+                    <Button x:Name="BtnProfileExtremo" Content="Extremo" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,10,0"/>
 
-                    <TextBox x:Name="TxtSearchBox" Width="190" Height="32" Background="#202020" Foreground="#FFFFFF" BorderBrush="#3F3F3F" BorderThickness="1" Padding="8,5" VerticalContentAlignment="Center" FontSize="12.5" ToolTip="Filtrar ajustes por nombre, ruta o categoría"/>
-                </StackPanel>
+                    <TextBox x:Name="TxtSearchBox" Width="165" Height="28" Background="#121212" Foreground="#F2F2F2" BorderBrush="#3A3A3A" BorderThickness="1" Padding="8,4" VerticalContentAlignment="Center" FontSize="12" ToolTip="Buscar ajuste por nombre, ruta o riesgo"/>
+                </WrapPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="ChkRestorePoint" Content="Punto de Restauración" IsChecked="True" Foreground="#D0D0D0" VerticalAlignment="Center" Margin="0,0,12,0" FontSize="12"/>
-                    <Button x:Name="BtnSelectAllVisible" Content="Marcar Visibles" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnClearSelection" Content="Limpiar" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,8,0"/>
-                    <Button x:Name="BtnApplySelected" Content="Aplicar Seleccionados (0)" Style="{StaticResource FluentPrimaryButton}"/>
+                    <CheckBox x:Name="ChkRestorePoint" Content="Respaldo VSS" IsChecked="True" Foreground="#C8C8C8" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="11.5"/>
+                    <Button x:Name="BtnSelectAllVisible" Content="Marcar" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,5,0"/>
+                    <Button x:Name="BtnClearSelection" Content="Limpiar" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,5,0"/>
+                    <Button x:Name="BtnQueueLater" Content="Después" Style="{StaticResource MonoSecondaryButton}" Margin="0,0,6,0" ToolTip="Dejar seleccionados pendientes para ejecutar más tarde o con temporizador en 2º plano"/>
+                    <Button x:Name="BtnApplySelected" Content="Aplicar (0)" Style="{StaticResource MonoPrimaryButton}"/>
                 </StackPanel>
             </Grid>
         </Border>
 
+        <!-- Área Principal: Categorías + Lista Ligera -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="225"/>
+                <ColumnDefinition Width="195"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,12,0" Effect="{StaticResource CardShadow}">
+            <Border Grid.Column="0" Background="#1A1A1A" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,10,0">
                 <DockPanel LastChildFill="False">
-                    <TextBlock DockPanel.Dock="Top" Text="CATEGORÍAS" FontSize="11" FontWeight="Bold" Foreground="#A0A0A0" Margin="6,4,0,10"/>
-                    <Button x:Name="NavAll" DockPanel.Dock="Top" Content="Todas las Categorías" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavPerformance" DockPanel.Dock="Top" Content="Performance" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavPrivacy" DockPanel.Dock="Top" Content="Privacy &amp; IA (24H2+)" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavNetwork" DockPanel.Dock="Top" Content="Network &amp; DNS" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavServices" DockPanel.Dock="Top" Content="Services" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavDebloat" DockPanel.Dock="Top" Content="Debloat UWP" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavMaintenance" DockPanel.Dock="Top" Content="Maintenance (En Vivo)" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavStartup" DockPanel.Dock="Top" Content="Apps de Inicio (Startup)" Style="{StaticResource NavCategoryButton}" Foreground="#38BDF8"/>
+                    <TextBlock DockPanel.Dock="Top" Text="CATEGORÍAS" FontSize="10.5" FontWeight="Bold" Foreground="#7A7A7A" Margin="6,2,0,8"/>
+                    <Button x:Name="NavAll" DockPanel.Dock="Top" Content="Todas" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavPerformance" DockPanel.Dock="Top" Content="Rendimiento" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavPrivacy" DockPanel.Dock="Top" Content="Privacidad e IA" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavNetwork" DockPanel.Dock="Top" Content="Red y DNS" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavServices" DockPanel.Dock="Top" Content="Servicios" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavDebloat" DockPanel.Dock="Top" Content="Apps (Debloat)" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavMaintenance" DockPanel.Dock="Top" Content="Mantenimiento" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavStartup" DockPanel.Dock="Top" Content="Apps de Inicio" Style="{StaticResource NavCategoryButton}" Foreground="#F2F2F2"/>
 
-                    <Border DockPanel.Dock="Bottom" Background="#202020" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="6" Padding="10">
+                    <Border DockPanel.Dock="Bottom" Background="#141414" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="5" Padding="8" Margin="0,6,0,0">
                         <StackPanel>
-                            <TextBlock Text="Guardrails Activos" FontSize="11.5" FontWeight="Bold" Foreground="#1E90FF"/>
-                            <TextBlock x:Name="TxtGuardrailSummary" Text="Evaluando hardware..." FontSize="11" Foreground="#A0A0A0" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="Protección Hardware" FontSize="11" FontWeight="Bold" Foreground="#E0E0E0"/>
+                            <TextBlock x:Name="TxtGuardrailSummary" Text="Evaluando..." FontSize="10.5" Foreground="#9A9A9A" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border x:Name="PendingQueueBox" DockPanel.Dock="Bottom" Visibility="Collapsed" Background="#202020" BorderBrush="#5A5A5A" BorderThickness="1" CornerRadius="5" Padding="8" Margin="0,6,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Pendientes en Cola" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock x:Name="TxtPendingSummary" Text="0 pendientes" FontSize="10.5" Foreground="#C0C0C0" TextWrapping="Wrap" Margin="0,3,0,6"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BtnRunPendingNow" Content="Ejecutar" Style="{StaticResource MonoPrimaryButton}" Padding="8,4" FontSize="11" Margin="0,0,5,0"/>
+                                <Button x:Name="BtnCancelPending" Content="Cancelar" Style="{StaticResource MonoSecondaryButton}" Padding="8,4" FontSize="11"/>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </DockPanel>
             </Border>
 
-            <Border Grid.Column="1" Background="#252525" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="8" Padding="12">
+            <Border Grid.Column="1" Background="#161616" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="6" Padding="10">
                 <Grid>
                     <ScrollViewer x:Name="TweakCardsScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel x:Name="TweakCardsPanel" Margin="0,0,8,0"/>
+                        <StackPanel x:Name="TweakCardsPanel" Margin="0,0,6,0"/>
                     </ScrollViewer>
 
                     <ScrollViewer x:Name="StartupAppsScrollViewer" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <StackPanel x:Name="StartupAppsPanel" Margin="0,0,8,0"/>
+                        <StackPanel x:Name="StartupAppsPanel" Margin="0,0,6,0"/>
                     </ScrollViewer>
                 </Grid>
             </Border>
         </Grid>
 
-        <Border Grid.Row="3" Background="#1A1A1A" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,12,0,0">
+        <!-- Zona Detallada de Procesos y Ejecución en Vivo -->
+        <Border Grid.Row="3" Background="#141414" BorderBrush="#2E2E2E" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,10,0,0">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="0,0,0,6">
-                    <TextBlock Text="Consola de Auditoría y Ejecución Asíncrona" FontSize="12" FontWeight="SemiBold" Foreground="#A0A0A0"/>
-                    <TextBlock x:Name="TxtProgressDetail" Text="Inactivo" FontSize="12" Foreground="#1E90FF" HorizontalAlignment="Right"/>
+                <Grid Grid.Row="0" Margin="0,0,0,3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="ACTIVIDAD Y PROCESOS" FontSize="11" FontWeight="Bold" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TxtProgressDetail" Grid.Column="1" Text="En espera" FontSize="12" FontWeight="SemiBold" Foreground="#F2F2F2" Margin="10,0,10,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="TxtProcessStats" Grid.Column="2" Text="0/0 • Listo" FontSize="11.5" Foreground="#BDBDBD" VerticalAlignment="Center"/>
                 </Grid>
 
-                <ProgressBar x:Name="MainProgressBar" Grid.Row="1" Height="6" Minimum="0" Maximum="100" Value="0" Background="#2D2D2D" Foreground="#0078D4" BorderThickness="0" Margin="0,0,0,8"/>
+                <TextBlock x:Name="TxtProcessCurrentStep" Grid.Row="1" Text="Paso actual: Esperando selección del usuario (sin cambios aplicados todavía)." FontSize="11.5" Foreground="#9A9A9A" Margin="0,0,0,6" TextTrimming="CharacterEllipsis"/>
 
-                <TextBox x:Name="TxtConsoleLog" Grid.Row="2" Background="#141414" Foreground="#E0E0E0" BorderBrush="#2D2D2D" BorderThickness="1" FontFamily="Consolas" FontSize="11.5" IsReadOnly="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Padding="8"/>
+                <ProgressBar x:Name="MainProgressBar" Grid.Row="2" Height="5" Minimum="0" Maximum="100" Value="0" Background="#242424" Foreground="#EDEDED" BorderThickness="0" Margin="0,0,0,7"/>
+
+                <TextBox x:Name="TxtConsoleLog" Grid.Row="3" Background="#0E0E0E" Foreground="#D4D4D4" BorderBrush="#262626" BorderThickness="1" FontFamily="Consolas" FontSize="11" IsReadOnly="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Padding="7"/>
             </Grid>
         </Border>
     </Grid>

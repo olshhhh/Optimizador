@@ -76,27 +76,27 @@ function Invoke-CliGuidedWizard {
     Write-Host "Tier detectado automáticamente para tu equipo: $($HardwareProfile.RecommendedTier)`n" -ForegroundColor Yellow
 
     $ids = [System.Collections.Generic.HashSet[string]]::new()
-    foreach ($id in @('PERF_WAIT_TO_KILL', 'PERF_NTFS_LAST_ACCESS', 'NET_DNS_CACHE', 'SVC_FAX', 'SVC_REMOTE_REGISTRY', 'SVC_MAPS_BROKER')) {
+    foreach ($id in @('PERF_WAIT_TO_KILL', 'PERF_MENU_SHOW_DELAY', 'PERF_NTFS_LAST_ACCESS', 'NET_DNS_CACHE', 'SVC_FAX', 'SVC_REMOTE_REGISTRY', 'SVC_MAPS_BROKER')) {
         [void]$ids.Add($id)
     }
 
-    Write-Host '1. Uso principal: [1] PC Antiguo (Legacy)  [2] Gaming  [3] Trabajo  [4] Laptop'
+    Write-Host '1. Uso principal: [1] PC Antiguo (Legacy)  [2] Gaming  [3] Uso Diario/Oficina  [4] Laptop'
     $u = Read-Host 'Elige una opción (1-4)'
     switch ($u) {
-        '1' { foreach ($id in @('PERF_TRANSPARENCY_OFF', 'PERF_VISUAL_EFFECTS', 'PERF_GAME_DVR', 'SVC_WER')) { [void]$ids.Add($id) } }
-        '2' { foreach ($id in @('PERF_SYSMAIN', 'PERF_GAME_DVR', 'PERF_HAGS_ON', 'PERF_HYBRID_PCORE', 'NET_NAGLE', 'NET_THROTTLING')) { [void]$ids.Add($id) } }
-        '3' { foreach ($id in @('PERF_WIN11_MENU', 'PERF_GAME_DVR')) { [void]$ids.Add($id) } }
+        '1' { foreach ($id in @('PERF_STARTUP_DELAY_OFF', 'PERF_TRANSPARENCY_OFF', 'PERF_VISUAL_EFFECTS', 'PERF_GAME_DVR', 'SVC_WER')) { [void]$ids.Add($id) } }
+        '2' { foreach ($id in @('PERF_STARTUP_DELAY_OFF', 'PERF_SYSMAIN', 'PERF_GAME_DVR', 'PERF_GAME_MODE_ON', 'PERF_HAGS_ON', 'PERF_HYBRID_PCORE', 'NET_NAGLE', 'NET_THROTTLING')) { [void]$ids.Add($id) } }
+        '3' { foreach ($id in @('PERF_STARTUP_DELAY_OFF', 'PERF_WIN11_MENU', 'PERF_GAME_DVR')) { [void]$ids.Add($id) } }
         default { [void]$ids.Add('PERF_GAME_DVR') }
     }
 
-    if ((Read-Host '2. ¿Bloquear Telemetría, Copilot y Recall IA 24H2+? (S/N)') -match '^[SsYy]') {
-        foreach ($id in @('PRIV_DIAGTRACK', 'PRIV_WIN11_COPILOT', 'PRIV_WIN11_AI_RECALL', 'PRIV_DELIVERY_OPT', 'PRIV_CORTANA', 'PRIV_CONSUMER_EXP', 'PRIV_EDGE_TELEMETRY', 'PRIV_ADVERTISING_ID')) {
+    if ((Read-Host '2. ¿Bloquear Telemetría, Widgets, Apps 2º plano, Copilot y Recall IA? (S/N)') -match '^[SsYy]') {
+        foreach ($id in @('PRIV_DIAGTRACK', 'SVC_WAP_PUSH', 'PRIV_WIDGETS_NEWS_OFF', 'PRIV_BACKGROUND_APPS_OFF', 'PRIV_WIN11_COPILOT', 'PRIV_WIN11_AI_RECALL', 'PRIV_DELIVERY_OPT', 'PRIV_CORTANA', 'PRIV_CONSUMER_EXP', 'PRIV_EDGE_TELEMETRY', 'PRIV_ADVERTISING_ID')) {
             [void]$ids.Add($id)
         }
     }
 
-    if ((Read-Host '3. ¿Desinstalar Bloatware UWP (Cortana, Bing, Clipchamp, Solitaire)? (S/N)') -match '^[SsYy]') {
-        foreach ($id in @('DEBLOAT_CORTANA_APP', 'DEBLOAT_BING_WEATHER', 'DEBLOAT_CLIPCHAMP', 'DEBLOAT_SOLITAIRE')) {
+    if ((Read-Host '3. ¿Desinstalar Bloatware UWP (Cortana, Bing, Clipchamp, Solitaire, Obtener Ayuda)? (S/N)') -match '^[SsYy]') {
+        foreach ($id in @('DEBLOAT_CORTANA_APP', 'DEBLOAT_BING_WEATHER', 'DEBLOAT_CLIPCHAMP', 'DEBLOAT_SOLITAIRE', 'DEBLOAT_HELP_FEEDBACK')) {
             [void]$ids.Add($id)
         }
     }

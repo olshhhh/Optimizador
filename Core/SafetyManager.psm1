@@ -144,7 +144,7 @@ function New-WinForgeBackupSession {
                 $nativeKey = ConvertTo-RegExePath -PowerShellPath $psPath
 
                 try {
-                    $proc = Start-Process -FilePath $regExe -ArgumentList @('export', "`"$nativeKey`"", "`"$regFilePath`"", '/y') -NoNewWindow -Wait -PassThru
+                    $proc = Start-Process -FilePath $regExe -ArgumentList @('export', "`"$nativeKey`"", "`"$regFilePath`"", '/y') -WindowStyle Hidden -Wait -PassThru
                     if ($proc.ExitCode -eq 0 -and (Test-Path -LiteralPath $regFilePath)) {
                         $exportedFiles.Add([PSCustomObject]@{
                             TweakId    = $tweak.id
@@ -276,7 +276,7 @@ function Invoke-WinForgeRollback {
             $regPath = Join-Path $regFolder $regEntry.RegFile
             if (Test-Path -LiteralPath $regPath) {
                 try {
-                    $proc = Start-Process -FilePath $regExe -ArgumentList @('import', "`"$regPath`"") -NoNewWindow -Wait -PassThru
+                    $proc = Start-Process -FilePath $regExe -ArgumentList @('import', "`"$regPath`"") -WindowStyle Hidden -Wait -PassThru
                     if ($proc.ExitCode -eq 0) {
                         if ($LogCallback) { & $LogCallback "[REG] Backup importado: $($regEntry.RegFile)" }
                     }
