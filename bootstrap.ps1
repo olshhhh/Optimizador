@@ -6,12 +6,12 @@
     solicita elevación UAC si es necesario preservando los argumentos y origen, ejecuta el
     orquestador principal y destruye por completo los archivos temporales al finalizar.
 .EXAMPLE
-    irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps1 | iex
+    irm https://raw.githubusercontent.com/olshhhh/Optimizador/main/bootstrap.ps1 | iex
 #>
 
 [CmdletBinding()]
 param(
-    [string]$RepoOwner = 'isaacrietman',
+    [string]$RepoOwner = 'olshhhh',
     [string]$RepoName = 'Optimizador',
     [string]$Branch = 'main',
     [string]$BaseUrl = '',

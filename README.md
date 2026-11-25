@@ -1,4 +1,4 @@
-# WinForge Engine (`isaacrietman/Optimizador`)
+# WinForge Engine (`olshhhh/Optimizador`)
 
 > ## Transparencia, Seguridad y Descargo de Responsabilidad
 >
@@ -20,17 +20,17 @@ Suite modular de optimización adaptativa, auditoría de hardware, mantenimiento
 Abre **PowerShell** o **Terminal de Windows** (solicitará elevación UAC automáticamente) y ejecuta:
 
 ```powershell
-irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps1 | iex
+irm https://raw.githubusercontent.com/olshhhh/Optimizador/main/bootstrap.ps1 | iex
 ```
 
 ### Parámetros opcionales para automatización / CLI / WinPE
 
 ```powershell
 # Forzar interfaz CLI en consola o entornos headless
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps1))) -Cli
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/olshhhh/Optimizador/main/bootstrap.ps1))) -Cli
 
 # Aplicar un perfil directamente en modo desatendido (Legacy, Gaming, Trabajo, Laptop, Extremo)
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps1))) -Cli -Profile Legacy
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/olshhhh/Optimizador/main/bootstrap.ps1))) -Cli -Profile Legacy
 ```
 
 ---
