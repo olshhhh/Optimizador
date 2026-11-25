@@ -22,6 +22,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+try {
+    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force -ErrorAction SilentlyContinue
+}
+catch { }
+
 # Forzar TLS 1.2 para descargas seguras en PowerShell 5.1 / Windows 10 & 11
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -164,18 +169,34 @@ try {
     }
 
     $entryScript = Join-Path $volatileRoot 'WinForge.ps1'
-    $launchParams = @{
-        BasePath = $volatileRoot
+    $shellExe = if ($PSVersionTable.PSEdition -eq 'Core') {
+        (Get-Process -Id $PID).Path
     }
+    else {
+        Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    }
+
+    $entryArgs = @(
+        '-NoProfile',
+        '-STA',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', "`"$entryScript`"",
+        '-BasePath', "`"$volatileRoot`"",
+        '-NoPauseOnError'
+    )
     if ($Cli.IsPresent) {
-        $launchParams['Cli'] = $true
+        $entryArgs += '-Cli'
     }
     if (-not [string]::IsNullOrWhiteSpace($Profile)) {
-        $launchParams['Profile'] = $Profile
+        $entryArgs += '-Profile'
+        $entryArgs += "`"$Profile`""
     }
 
     Write-Host '[WinForge] Iniciando orquestador...' -ForegroundColor Green
-    & $entryScript @launchParams
+    $proc = Start-Process -FilePath $shellExe -ArgumentList $entryArgs -NoNewWindow -Wait -PassThru
+    if ($proc.ExitCode -ne 0) {
+        throw "El orquestador finalizó con código de error $($proc.ExitCode). Revisa el detalle mostrado arriba o en %LOCALAPPDATA%\WinForge\Logs\last_error.log."
+    }
 }
 catch {
     Write-Host "`n[WinForge] Error fatal en bootstrap: $($_.Exception.Message)" -ForegroundColor Red
@@ -185,10 +206,10 @@ catch {
     if ($_.Exception.InnerException) {
         Write-Host "[WinForge] Detalle: $($_.Exception.InnerException.Message)" -ForegroundColor DarkRed
     }
+    $exitCode = 1
     if ([System.Environment]::UserInteractive) {
         Read-Host "`nPresiona ENTER para cerrar"
     }
-    exit 1
 }
 finally {
     if ($null -ne $webClient) {
@@ -198,4 +219,8 @@ finally {
         Write-Host '[WinForge] Destruyendo huella local en carpeta temporal volátil...' -ForegroundColor DarkGray
         Remove-Item -LiteralPath $volatileRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
+}
+
+if (Test-Path variable:exitCode) {
+    exit $exitCode
 }

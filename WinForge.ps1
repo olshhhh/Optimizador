@@ -11,7 +11,8 @@
 param(
     [switch]$Cli,
     [string]$Profile = '',
-    [string]$BasePath = $PSScriptRoot
+    [string]$BasePath = $PSScriptRoot,
+    [switch]$NoPauseOnError
 )
 
 Set-StrictMode -Version Latest
@@ -80,6 +81,9 @@ if ($useGui -and ([System.Threading.Thread]::CurrentThread.GetApartmentState() -
     if (-not [string]::IsNullOrWhiteSpace($Profile)) {
         $argList += '-Profile'
         $argList += "`"$Profile`""
+    }
+    if ($NoPauseOnError.IsPresent) {
+        $argList += '-NoPauseOnError'
     }
 
     $proc = Start-Process -FilePath $shellExe -ArgumentList $argList -NoNewWindow -Wait -PassThru
@@ -150,7 +154,7 @@ catch {
     }
     catch { }
 
-    if ([System.Environment]::UserInteractive) {
+    if (-not $NoPauseOnError.IsPresent -and [System.Environment]::UserInteractive) {
         Read-Host "`nOcurrió un error al iniciar WinForge. Presiona ENTER para cerrar"
     }
     exit 1
