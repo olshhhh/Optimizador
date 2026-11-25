@@ -1,12 +1,23 @@
 # WinForge Engine (`isaacrietman/Optimizador`)
 
-Suite modular de optimización adaptativa, auditoría de hardware, mantenimiento y privacidad para **Windows 10 (Build 19041+)** y **Windows 11 (incluyendo 24H2+)**. Combina la experiencia guiada e intuitiva inspirada en **APBOptimizer / WinUtil** con un motor de seguridad de hardware para proteger tanto **equipos antiguos (Legacy)** como **estaciones modernas**.
+> ## Transparencia, Seguridad y Descargo de Responsabilidad
+>
+> **¿Qué es y qué NO es esta herramienta?**
+> - **Código abierto 100% legible:** escrito íntegramente en PowerShell y WPF nativo, sin ejecutables compilados (`.exe`), sin DLLs externas y sin recolección de datos.
+> - **No es software milagroso:** no reemplaza hardware antiguo ni multiplica FPS artificialmente; su objetivo es reducir procesos en segundo plano, telemetría y carga innecesaria según el hardware real del equipo (HDD/SSD, RAM y Laptop/Desktop).
+> - **Requiere privilegios de Administrador** porque modifica claves del Registro, servicios de Windows, directivas locales y paquetes UWP.
+> - **Seguridad y Reversión:** antes de aplicar modificaciones crea automáticamente un Punto de Restauración del Sistema (si el servicio VSS está activo) y exporta respaldos `.reg` en `%LOCALAPPDATA%\WinForge\Backups\<Timestamp>\`. Aun así, **el usuario asume la responsabilidad** de revisar el nivel de riesgo (`Bajo`, `Moderado`, `Alto`) y las desventajas indicadas en cada ajuste antes de aplicarlo.
+> - **Advertencia de Antivirus / SmartScreen:** al ejecutarse de forma remota (`irm | iex`) y modificar el Registro, Windows Defender o antivirus de terceros pueden mostrar alertas preventivas. Se recomienda auditar siempre el código fuente en este repositorio antes de ejecutarlo.
+
+---
+
+Suite modular de optimización adaptativa, auditoría de hardware, mantenimiento y privacidad para **Windows 10 (Build 19041+)** y **Windows 11 (incluyendo 24H2+)**. Diseñada para proteger tanto **equipos antiguos (Legacy)** como **estaciones modernas** mediante un motor de reglas de hardware y ejecución asíncrona.
 
 ---
 
 ## Ejecución Zero-Install (Una sola línea)
 
-Abre **PowerShell** (se elevará automáticamente por UAC si es necesario) y ejecuta:
+Abre **PowerShell** o **Terminal de Windows** (solicitará elevación UAC automáticamente) y ejecuta:
 
 ```powershell
 irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps1 | iex
@@ -24,12 +35,12 @@ irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps
 
 ---
 
-## Pilares de Ingeniería y Mejoras Clave
+## Pilares de Ingeniería
 
-1. **Transparencia Radical y Niveles de Riesgo:** Cada ajuste muestra exactamente qué componente modifica (`Registro`, `Servicio`, `PoliticaGrupo`, `TareaProgramada`), su ruta exacta, beneficio real, desventaja y nivel de riesgo (`Bajo`, `Moderado`, `Alto`).
-2. **Asistente Guiado Paso a Paso (Modo APBOptimizer):** Responde 5 preguntas simples sobre tu uso diario, privacidad 24H2+, impresoras y DNS; WinForge construye una selección segura adaptada a tu hardware.
+1. **Transparencia Radical y Niveles de Riesgo:** Cada ajuste documenta qué componente modifica (`Registro`, `Servicio`, `PoliticaGrupo`, `TareaProgramada`), su ruta exacta, beneficio real, posible desventaja y nivel de riesgo (`Bajo`, `Moderado`, `Alto`).
+2. **Asistente Guiado Paso a Paso:** Responde 5 preguntas simples sobre tu uso diario, privacidad 24H2+, impresoras y DNS; WinForge construye automáticamente una selección segura adaptada a tu equipo.
 3. **Inteligencia Adaptativa (PC Antiguo vs Moderno):**
-   - **Equipos Antiguos (Legacy):** Perfil dedicado que reduce carga DWM (`EnableTransparency = 0`, `MinAnimate = 0`), activa `NtfsDisableLastAccess = 1` y bloquea procesos residentes de Edge/Copilot, **protegiendo** `SysMain` en discos HDD y **bloqueando** la desactivación de `MemoryCompression` en equipos con `<= 8 GB RAM`.
+   - **Equipos Antiguos (Legacy):** Reduce carga DWM (`EnableTransparency = 0`, `MinAnimate = 0`), activa `NtfsDisableLastAccess = 1` y bloquea procesos residentes de Edge/Copilot, **protegiendo** `SysMain` en discos HDD y **bloqueando** la desactivación de `MemoryCompression` en equipos con `<= 8 GB RAM`.
    - **Equipos Modernos / 24H2+:** Soporte para `HAGS` (`HwSchMode = 2`), prioridad de `P-Cores` en CPUs híbridos (`HETEROPOLICY = 3`), bloqueo de `Windows Copilot` y `Windows Recall / AI Data Analysis`, `Delivery Optimization P2P` y DNS rápidos (`Cloudflare 1.1.1.1` / `AdGuard`).
 4. **Gestor Reversible de Apps de Inicio (Startup):** Permite desactivar y reactivar entradas de inicio en `HKCU`/`HKLM Run` moviéndolas de forma segura sin perder sus comandos originales.
 5. **Seguridad y Rollback Total:** Crea Punto de Restauración (`Checkpoint-Computer`), exporta respaldos `.reg` en `$env:LOCALAPPDATA\WinForge\Backups\<Timestamp>\` y ofrece **Deshacer Todo / Revertir**.
@@ -55,11 +66,12 @@ irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps
 ├── Data/
 │   ├── tweaks.json               # Catálogo de ajustes documentados con nivel de riesgo
 │   └── profiles.json             # Perfiles Legacy, Gaming, Trabajo, Laptop y Extremo
+├── LICENSE                       # Licencia MIT
 └── README.md
 ```
 
 ---
 
-## Descargo de Responsabilidad
+## Licencia
 
-WinForge Engine modifica configuraciones del sistema operativo, servicios y claves del Registro de Windows bajo estándares idempotentes y con respaldo previo automático. El administrador del equipo es responsable de revisar las advertencias mostradas en pantalla antes de aplicar ajustes de riesgo moderado o alto.
+Distribuido bajo licencia **MIT**. Consulta el archivo [`LICENSE`](LICENSE) para más detalles.

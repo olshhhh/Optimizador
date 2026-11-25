@@ -4,7 +4,7 @@
 .DESCRIPTION
     Controlador WPF puro que parsea UI/MainWindow.xaml mediante XamlReader, construye
     tarjetas con Transparencia Radical y Nivel de Riesgo, incluye el Asistente Guiado
-    paso a paso (inspirado en APBOptimizer) y el Gestor de Apps de Inicio, delegando
+    paso a paso y el Gestor de Apps de Inicio, delegando
     todas las tareas largas al RunspacePool.
 #>
 
@@ -163,7 +163,7 @@ function New-TweakCardElement {
     $compBadge.Child = $compTxt
     [void]$leftStack.Children.Add($compBadge)
 
-    # Badge Nivel de Riesgo (Estilo APBOptimizer)
+    # Badge Nivel de Riesgo
     $riskBadge = [System.Windows.Controls.Border]::new()
     $riskBadge.CornerRadius = [System.Windows.CornerRadius]::new(4)
     $riskBadge.Padding = [System.Windows.Thickness]::new(7, 2, 7, 2)

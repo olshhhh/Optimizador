@@ -2,7 +2,7 @@
 .SYNOPSIS
     WinForge Engine - CliController.
 .DESCRIPTION
-    Menú interactivo en consola, Asistente Guiado paso a paso (inspirado en APBOptimizer),
+    Menú interactivo en consola, Asistente Guiado paso a paso,
     Gestor de Aplicaciones de Inicio y ejecutor de perfiles para entornos headless/WinPE.
 #>
 
