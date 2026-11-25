@@ -3,8 +3,9 @@
     WinForge Engine - GuiController.
 .DESCRIPTION
     Controlador WPF puro que parsea UI/MainWindow.xaml mediante XamlReader, construye
-    tarjetas con Transparencia Radical, enlaza eventos y delega tareas largas al
-    RunspacePool de forma 100% asíncrona.
+    tarjetas con Transparencia Radical y Nivel de Riesgo, incluye el Asistente Guiado
+    paso a paso (inspirado en APBOptimizer) y el Gestor de Apps de Inicio, delegando
+    todas las tareas largas al RunspacePool.
 #>
 
 Set-StrictMode -Version Latest
@@ -62,7 +63,11 @@ function Set-UiBusyState {
     $SyncHash.IsBusy = $Busy
 
     Update-WinForgeUi -SyncHash $SyncHash -Action {
-        $controlsToToggle = @('BtnRefreshStatus', 'BtnRollbackAll', 'BtnProfileGaming', 'BtnProfileTrabajo', 'BtnProfileLaptop', 'BtnProfileExtremo', 'BtnSelectAllVisible', 'BtnClearSelection')
+        $controlsToToggle = @(
+            'BtnGuidedWizard', 'BtnRefreshStatus', 'BtnRollbackAll',
+            'BtnProfileLegacy', 'BtnProfileGaming', 'BtnProfileTrabajo', 'BtnProfileLaptop', 'BtnProfileExtremo',
+            'BtnSelectAllVisible', 'BtnClearSelection'
+        )
         foreach ($name in $controlsToToggle) {
             $ctrl = $SyncHash.Controls[$name]
             if ($null -ne $ctrl) {
@@ -157,6 +162,35 @@ function New-TweakCardElement {
     $compTxt.Foreground = Convert-ColorFromHex '#A0A0A0'
     $compBadge.Child = $compTxt
     [void]$leftStack.Children.Add($compBadge)
+
+    # Badge Nivel de Riesgo (Estilo APBOptimizer)
+    $riskBadge = [System.Windows.Controls.Border]::new()
+    $riskBadge.CornerRadius = [System.Windows.CornerRadius]::new(4)
+    $riskBadge.Padding = [System.Windows.Thickness]::new(7, 2, 7, 2)
+    $riskBadge.Margin = [System.Windows.Thickness]::new(6, 0, 0, 0)
+    $riskBadge.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+
+    $riskTxt = [System.Windows.Controls.TextBlock]::new()
+    $riskTxt.FontSize = 11
+    $riskTxt.FontWeight = [System.Windows.FontWeights]::SemiBold
+    $riskTxt.Text = "Riesgo: $($Tweak.riskLevel)"
+
+    switch ($Tweak.riskLevel) {
+        'Alto' {
+            $riskBadge.Background = Convert-ColorFromHex '#3A181B'
+            $riskTxt.Foreground = Convert-ColorFromHex '#FF6B6B'
+        }
+        'Moderado' {
+            $riskBadge.Background = Convert-ColorFromHex '#3A2810'
+            $riskTxt.Foreground = Convert-ColorFromHex '#FFA940'
+        }
+        default {
+            $riskBadge.Background = Convert-ColorFromHex '#123227'
+            $riskTxt.Foreground = Convert-ColorFromHex '#34D399'
+        }
+    }
+    $riskBadge.Child = $riskTxt
+    [void]$leftStack.Children.Add($riskBadge)
 
     $rightStack = [System.Windows.Controls.StackPanel]::new()
     $rightStack.Orientation = [System.Windows.Controls.Orientation]::Horizontal
@@ -322,6 +356,9 @@ function Render-TweakList {
         [string]$SearchText
     )
 
+    $SyncHash.Controls['TweakCardsScrollViewer'].Visibility = [System.Windows.Visibility]::Visible
+    $SyncHash.Controls['StartupAppsScrollViewer'].Visibility = [System.Windows.Visibility]::Collapsed
+
     $panel = $SyncHash.Controls['TweakCardsPanel']
     $panel.Children.Clear()
 
@@ -332,7 +369,7 @@ function Render-TweakList {
             continue
         }
         if (-not [string]::IsNullOrWhiteSpace($query)) {
-            $haystack = "$($tweak.name) $($tweak.description) $($tweak.id) $($tweak.targetPath)"
+            $haystack = "$($tweak.name) $($tweak.description) $($tweak.id) $($tweak.targetPath) $($tweak.riskLevel)"
             if ($haystack -notlike "*$query*") {
                 continue
             }
@@ -343,6 +380,282 @@ function Render-TweakList {
             [void]$panel.Children.Add($card)
         }
     }
+}
+
+function Render-StartupAppsList {
+    param(
+        [hashtable]$SyncHash,
+        [PSCustomObject]$RunspaceContext
+    )
+
+    $SyncHash.Controls['TweakCardsScrollViewer'].Visibility = [System.Windows.Visibility]::Collapsed
+    $SyncHash.Controls['StartupAppsScrollViewer'].Visibility = [System.Windows.Visibility]::Visible
+
+    $panel = $SyncHash.Controls['StartupAppsPanel']
+    $panel.Children.Clear()
+
+    $hdr = [System.Windows.Controls.TextBlock]::new()
+    $hdr.Text = 'Gestor Reversible de Aplicaciones de Inicio (HKCU / HKLM Run)'
+    $hdr.FontSize = 15
+    $hdr.FontWeight = [System.Windows.FontWeights]::Bold
+    $hdr.Foreground = Convert-ColorFromHex '#FFFFFF'
+    $hdr.Margin = [System.Windows.Thickness]::new(0, 0, 0, 6)
+    [void]$panel.Children.Add($hdr)
+
+    $sub = [System.Windows.Controls.TextBlock]::new()
+    $sub.Text = 'Al desactivar una app de inicio, WinForge la mueve de forma segura a una clave de respaldo para que puedas reactivarla con 1 clic en cualquier momento.'
+    $sub.FontSize = 12
+    $sub.Foreground = Convert-ColorFromHex '#A0A0A0'
+    $sub.TextWrapping = [System.Windows.TextWrapping]::Wrap
+    $sub.Margin = [System.Windows.Thickness]::new(0, 0, 0, 12)
+    [void]$panel.Children.Add($sub)
+
+    $apps = @(Get-WinForgeStartupApps)
+    if ($apps.Count -eq 0) {
+        $empty = [System.Windows.Controls.TextBlock]::new()
+        $empty.Text = 'No se detectaron entradas de inicio en el Registro.'
+        $empty.Foreground = Convert-ColorFromHex '#A0A0A0'
+        [void]$panel.Children.Add($empty)
+        return
+    }
+
+    foreach ($app in $apps) {
+        $card = [System.Windows.Controls.Border]::new()
+        $card.Background = Convert-ColorFromHex '#2D2D2D'
+        $card.BorderBrush = Convert-ColorFromHex '#3F3F3F'
+        $card.BorderThickness = [System.Windows.Thickness]::new(1)
+        $card.CornerRadius = [System.Windows.CornerRadius]::new(6)
+        $card.Padding = [System.Windows.Thickness]::new(12)
+        $card.Margin = [System.Windows.Thickness]::new(0, 0, 0, 8)
+
+        $grid = [System.Windows.Controls.Grid]::new()
+        $c0 = [System.Windows.Controls.ColumnDefinition]::new()
+        $c0.Width = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
+        $c1 = [System.Windows.Controls.ColumnDefinition]::new()
+        $c1.Width = [System.Windows.GridLength]::Auto
+        $grid.ColumnDefinitions.Add($c0)
+        $grid.ColumnDefinitions.Add($c1)
+
+        $info = [System.Windows.Controls.StackPanel]::new()
+        [System.Windows.Controls.Grid]::SetColumn($info, 0)
+
+        $t1 = [System.Windows.Controls.TextBlock]::new()
+        $t1.Text = "$($app.Name)  [$($app.Scope)]"
+        $t1.FontSize = 13.5
+        $t1.FontWeight = [System.Windows.FontWeights]::SemiBold
+        $t1.Foreground = Convert-ColorFromHex '#FFFFFF'
+        [void]$info.Children.Add($t1)
+
+        $t2 = [System.Windows.Controls.TextBlock]::new()
+        $t2.Text = $app.Command
+        $t2.FontFamily = [System.Windows.Media.FontFamily]::new('Consolas')
+        $t2.FontSize = 11
+        $t2.Foreground = Convert-ColorFromHex '#A0A0A0'
+        $t2.TextWrapping = [System.Windows.TextWrapping]::Wrap
+        $t2.Margin = [System.Windows.Thickness]::new(0, 4, 0, 0)
+        [void]$info.Children.Add($t2)
+
+        $btn = [System.Windows.Controls.Button]::new()
+        [System.Windows.Controls.Grid]::SetColumn($btn, 1)
+        $btn.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+        $btn.Style = $SyncHash.Window.Resources['FluentSecondaryButton']
+        $btn.Content = if ($app.Enabled) { 'Desactivar Inicio' } else { 'Reactivar Inicio' }
+        $btn.Foreground = if ($app.Enabled) { Convert-ColorFromHex '#FFA940' } else { Convert-ColorFromHex '#34D399' }
+        $btn.Tag = $app
+        $btn.Add_Click({
+            param($s, $e)
+            $targetApp = $s.Tag
+            $newState = (-not $targetApp.Enabled)
+            $null = Set-WinForgeStartupAppState -StartupApp $targetApp -Enable $newState
+            Add-WinForgeLogLine -SyncHash $SyncHash -Message "Inicio '$($targetApp.Name)' -> $(if ($newState) { 'Activado' } else { 'Desactivado' })."
+            Render-StartupAppsList -SyncHash $SyncHash -RunspaceContext $RunspaceContext
+        }.GetNewClosure())
+
+        [void]$grid.Children.Add($info)
+        [void]$grid.Children.Add($btn)
+        $card.Child = $grid
+        [void]$panel.Children.Add($card)
+    }
+}
+
+function Show-GuidedWizardDialog {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$SyncHash,
+        [Parameter(Mandatory)]
+        [PSCustomObject]$HardwareProfile,
+        [Parameter(Mandatory)]
+        [PSCustomObject[]]$Tweaks
+    )
+
+    $wizXaml = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Asistente Guiado WinForge (Modo Paso a Paso)"
+        Width="640" Height="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#202020" Foreground="#FFFFFF"
+        FontFamily="Segoe UI Variable Text, Segoe UI">
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+            <TextBlock Text="Asistente Inteligente de Optimización" FontSize="19" FontWeight="Bold" Foreground="#FFFFFF"/>
+            <TextBlock x:Name="TxtWizHw" Text="Hardware detectado..." FontSize="12" Foreground="#38BDF8" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="1. ¿Cuál es el uso principal de este equipo?" FontWeight="SemiBold" FontSize="13"/>
+                        <ComboBox x:Name="CmbWizUsage" Margin="0,8,0,0" Height="30">
+                            <ComboBoxItem Content="PC Antiguo / Rescate de Recursos (HDD o &lt;=8GB RAM)" Tag="Legacy"/>
+                            <ComboBoxItem Content="Gaming y Baja Latencia (P-Cores, HAGS, Nagle)" Tag="Gaming"/>
+                            <ComboBoxItem Content="Trabajo / Productividad / Oficina" Tag="Trabajo"/>
+                            <ComboBoxItem Content="Laptop / Priorizar Batería y Movilidad" Tag="Laptop"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="2. Privacidad, Telemetría e IA (Windows 11 24H2+)" FontWeight="SemiBold" FontSize="13"/>
+                        <CheckBox x:Name="ChkWizPrivacy" Content="Desactivar telemetría DiagTrack, Copilot, Recall IA, Advertising ID y Edge Boost" IsChecked="True" Foreground="#E0E0E0" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="3. Aplicaciones de Microsoft Store (Debloat)" FontWeight="SemiBold" FontSize="13"/>
+                        <CheckBox x:Name="ChkWizDebloat" Content="Eliminar Cortana, Bing News/Weather, Clipchamp y Solitaire" IsChecked="True" Foreground="#E0E0E0" Margin="0,8,0,4"/>
+                        <CheckBox x:Name="ChkWizRemoveXbox" Content="Eliminar también Xbox Game Bar / Xbox Apps (No juego en este PC)" IsChecked="False" Foreground="#FFA940" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="4. ¿Utilizas impresora física o 'Imprimir a PDF'?" FontWeight="SemiBold" FontSize="13"/>
+                        <CheckBox x:Name="ChkWizPrinter" Content="Sí, utilizo impresoras (Mantener servicio Print Spooler activo)" IsChecked="True" Foreground="#E0E0E0" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="6" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="5. Optimización de DNS (Opcional)" FontWeight="SemiBold" FontSize="13"/>
+                        <ComboBox x:Name="CmbWizDns" Margin="0,8,0,0" Height="30">
+                            <ComboBoxItem Content="Mantener DNS actual / DHCP del router" Tag="NONE" IsSelected="True"/>
+                            <ComboBoxItem Content="Cloudflare DNS (1.1.1.1) — Máxima velocidad" Tag="NET_DNS_CLOUDFLARE"/>
+                            <ComboBoxItem Content="AdGuard DNS (94.140.14.14) — Bloqueo de anuncios/rastreadores" Tag="NET_DNS_ADGUARD"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button x:Name="BtnWizCancel" Content="Cancelar" Width="100" Height="34" Background="#2D2D2D" Foreground="#FFFFFF" BorderBrush="#3F3F3F" Margin="0,0,10,0"/>
+            <Button x:Name="BtnWizBuild" Content="Generar Selección Segura" Width="190" Height="34" Background="#0078D4" Foreground="#FFFFFF" FontWeight="SemiBold" BorderThickness="0"/>
+        </StackPanel>
+    </Grid>
+</Window>
+'@
+
+    $wizWin = [System.Windows.Markup.XamlReader]::Parse($wizXaml)
+    $wizWin.Owner = $SyncHash.Window
+
+    $txtHw = $wizWin.FindName('TxtWizHw')
+    $cmbUsage = $wizWin.FindName('CmbWizUsage')
+    $chkPriv = $wizWin.FindName('ChkWizPrivacy')
+    $chkDebloat = $wizWin.FindName('ChkWizDebloat')
+    $chkXbox = $wizWin.FindName('ChkWizRemoveXbox')
+    $chkPrinter = $wizWin.FindName('ChkWizPrinter')
+    $cmbDns = $wizWin.FindName('CmbWizDns')
+
+    $txtHw.Text = "Recomendación automática para tu hardware ($($HardwareProfile.TotalRamGB) GB RAM • $($HardwareProfile.Storage.MediaType) • $($HardwareProfile.Chassis.FormFactor)): $($HardwareProfile.RecommendedTier)"
+
+    foreach ($item in $cmbUsage.Items) {
+        if ($item.Tag -eq $HardwareProfile.RecommendedTier) {
+            $cmbUsage.SelectedItem = $item
+            break
+        }
+    }
+    if ($null -eq $cmbUsage.SelectedItem) {
+        $cmbUsage.SelectedIndex = 0
+    }
+
+    $wizWin.FindName('BtnWizCancel').Add_Click({ $wizWin.DialogResult = $false; $wizWin.Close() })
+    $wizWin.FindName('BtnWizBuild').Add_Click({ $wizWin.DialogResult = $true; $wizWin.Close() })
+
+    if ($wizWin.ShowDialog() -ne $true) {
+        return
+    }
+
+    $chosenTier = $cmbUsage.SelectedItem.Tag
+    $idsToSelect = [System.Collections.Generic.HashSet[string]]::new()
+
+    # Base segura universal
+    foreach ($id in @('PERF_WAIT_TO_KILL', 'PERF_NTFS_LAST_ACCESS', 'NET_DNS_CACHE', 'SVC_FAX', 'SVC_REMOTE_REGISTRY', 'SVC_MAPS_BROKER')) {
+        [void]$idsToSelect.Add($id)
+    }
+
+    switch ($chosenTier) {
+        'Legacy' {
+            foreach ($id in @('PERF_TRANSPARENCY_OFF', 'PERF_VISUAL_EFFECTS', 'PERF_GAME_DVR', 'SVC_WER')) { [void]$idsToSelect.Add($id) }
+        }
+        'Gaming' {
+            foreach ($id in @('PERF_SYSMAIN', 'PERF_GAME_DVR', 'PERF_HAGS_ON', 'PERF_HYBRID_PCORE', 'NET_NAGLE', 'NET_THROTTLING')) { [void]$idsToSelect.Add($id) }
+        }
+        'Trabajo' {
+            foreach ($id in @('PERF_WIN11_MENU', 'PERF_GAME_DVR')) { [void]$idsToSelect.Add($id) }
+        }
+        'Laptop' {
+            foreach ($id in @('PERF_GAME_DVR')) { [void]$idsToSelect.Add($id) }
+        }
+    }
+
+    if ($chkPriv.IsChecked -eq $true) {
+        foreach ($id in @('PRIV_DIAGTRACK', 'PRIV_WIN11_COPILOT', 'PRIV_WIN11_AI_RECALL', 'PRIV_DELIVERY_OPT', 'PRIV_CORTANA', 'PRIV_CONSUMER_EXP', 'PRIV_EDGE_TELEMETRY', 'PRIV_ADVERTISING_ID', 'PRIV_ACTIVITY_HISTORY')) {
+            [void]$idsToSelect.Add($id)
+        }
+    }
+
+    if ($chkDebloat.IsChecked -eq $true) {
+        foreach ($id in @('DEBLOAT_CORTANA_APP', 'DEBLOAT_BING_WEATHER', 'DEBLOAT_CLIPCHAMP', 'DEBLOAT_SOLITAIRE')) {
+            [void]$idsToSelect.Add($id)
+        }
+    }
+
+    if ($chkXbox.IsChecked -eq $true) {
+        [void]$idsToSelect.Add('DEBLOAT_XBOX_APPS')
+    }
+
+    if ($chkPrinter.IsChecked -ne $true) {
+        [void]$idsToSelect.Add('SVC_SPOOLER')
+    }
+
+    $dnsTag = $cmbDns.SelectedItem.Tag
+    if ($dnsTag -ne 'NONE') {
+        [void]$idsToSelect.Add($dnsTag)
+    }
+
+    foreach ($chk in $SyncHash.TweakCheckBoxes.Values) { $chk.IsChecked = $false }
+    $selectedCount = 0
+    foreach ($tid in $idsToSelect) {
+        $chk = $SyncHash.TweakCheckBoxes[$tid]
+        if ($null -ne $chk -and $chk.IsEnabled) {
+            $chk.IsChecked = $true
+            $selectedCount++
+        }
+    }
+
+    Update-SelectedCounterUi -SyncHash $SyncHash
+    Add-WinForgeLogLine -SyncHash $SyncHash -Message "Asistente Guiado completado ($chosenTier): $selectedCount ajustes compatibles preseleccionados. Revisa los detalles y pulsa 'Aplicar Seleccionados'."
 }
 
 function Start-AsyncStatusAudit {
@@ -423,40 +736,39 @@ function Start-WinForgeGui {
     $controlNames = @(
         'TxtHardwareOS', 'TxtHardwareCPU', 'TxtHardwareRAM', 'TxtHardwareStorage', 'TxtHardwareChassis',
         'BadgeStorage', 'BadgeChassis', 'TxtGuardrailSummary', 'TxtSessionStatus',
-        'BtnRefreshStatus', 'BtnRollbackAll',
-        'BtnProfileGaming', 'BtnProfileTrabajo', 'BtnProfileLaptop', 'BtnProfileExtremo',
+        'BtnGuidedWizard', 'BtnRefreshStatus', 'BtnRollbackAll',
+        'BtnProfileLegacy', 'BtnProfileGaming', 'BtnProfileTrabajo', 'BtnProfileLaptop', 'BtnProfileExtremo',
         'TxtSearchBox', 'ChkRestorePoint', 'BtnSelectAllVisible', 'BtnClearSelection', 'BtnApplySelected',
-        'NavAll', 'NavPerformance', 'NavPrivacy', 'NavNetwork', 'NavServices', 'NavDebloat', 'NavMaintenance',
-        'TweakCardsPanel', 'TxtProgressDetail', 'MainProgressBar', 'TxtConsoleLog'
+        'NavAll', 'NavPerformance', 'NavPrivacy', 'NavNetwork', 'NavServices', 'NavDebloat', 'NavMaintenance', 'NavStartup',
+        'TweakCardsScrollViewer', 'TweakCardsPanel', 'StartupAppsScrollViewer', 'StartupAppsPanel',
+        'TxtProgressDetail', 'MainProgressBar', 'TxtConsoleLog'
     )
 
     foreach ($name in $controlNames) {
         $syncHash.Controls[$name] = $window.FindName($name)
     }
 
+    $cpuTypeLabel = if ($HardwareProfile.IsHybridCpu) { 'Híbrido P/E' } elseif ($HardwareProfile.IsLowEndCpu) { 'Legacy' } else { 'Estándar' }
     $syncHash.Controls['TxtHardwareOS'].Text = "OS: $($HardwareProfile.OSName) ($($HardwareProfile.DisplayVersion) • Build $($HardwareProfile.FullBuild))"
-    $syncHash.Controls['TxtHardwareCPU'].Text = "CPU: $($HardwareProfile.CpuName) ($($HardwareProfile.CpuCores)C/$($HardwareProfile.CpuThreads)T)"
-    $syncHash.Controls['TxtHardwareRAM'].Text = "RAM: $($HardwareProfile.FreeRamGB)/$($HardwareProfile.TotalRamGB) GB libres"
+    $syncHash.Controls['TxtHardwareCPU'].Text = "CPU ($cpuTypeLabel): $($HardwareProfile.CpuName) ($($HardwareProfile.CpuCores)C/$($HardwareProfile.CpuThreads)T)"
+    $syncHash.Controls['TxtHardwareRAM'].Text = "RAM ($($HardwareProfile.RamTier)): $($HardwareProfile.FreeRamGB)/$($HardwareProfile.TotalRamGB) GB libres"
     $syncHash.Controls['TxtHardwareStorage'].Text = "Disco $($HardwareProfile.Storage.DriveLetter) $($HardwareProfile.Storage.DisplayText)"
     $syncHash.Controls['TxtHardwareChassis'].Text = "Chasis: $($HardwareProfile.Chassis.FormFactor) • Energía: $($HardwareProfile.ActivePowerPlan)"
 
     $guardNotes = [System.Collections.Generic.List[string]]::new()
+    $guardNotes.Add("• Perfil sugerido: $($HardwareProfile.RecommendedTier)")
     if ($HardwareProfile.Storage.IsHDD) {
         $syncHash.Controls['BadgeStorage'].BorderBrush = Convert-ColorFromHex '#E81123'
         $syncHash.Controls['TxtHardwareStorage'].Foreground = Convert-ColorFromHex '#FF6B6B'
-        $guardNotes.Add('• Unidad HDD detectada: SysMain y ajustes SSDOnly bloqueados.')
+        $guardNotes.Add('• HDD detectado: SysMain y SSDOnly bloqueados.')
     }
-    else {
-        $guardNotes.Add("• Almacenamiento $($HardwareProfile.Storage.MediaType): Reglas SSD habilitadas.")
+    if ($HardwareProfile.TotalRamGB -le 8.5) {
+        $guardNotes.Add('• RAM <= 8 GB: Memory Compression protegida.')
     }
-
     if ($HardwareProfile.Chassis.IsLaptop) {
         $syncHash.Controls['BadgeChassis'].BorderBrush = Convert-ColorFromHex '#FF8C00'
         $syncHash.Controls['TxtHardwareChassis'].Foreground = Convert-ColorFromHex '#FFA940'
-        $guardNotes.Add('• Chasis Laptop detectado: Alertas de batería/hibernación activas.')
-    }
-    else {
-        $guardNotes.Add('• Chasis Desktop: Sin restricciones de batería.')
+        $guardNotes.Add('• Laptop: Alertas de batería/hibernación activas.')
     }
 
     $syncHash.Controls['TxtGuardrailSummary'].Text = ($guardNotes -join "`n")
@@ -486,8 +798,21 @@ function Start-WinForgeGui {
         }.GetNewClosure())
     }
 
+    $syncHash.Controls['NavStartup'].Add_Click({
+        $syncHash.CurrentCategory = 'Startup'
+        Render-StartupAppsList -SyncHash $syncHash -RunspaceContext $RunspaceContext
+    }.GetNewClosure())
+
     $syncHash.Controls['TxtSearchBox'].Add_TextChanged({
-        Render-TweakList -SyncHash $syncHash -Tweaks $Tweaks -CategoryFilter $syncHash.CurrentCategory -SearchText $syncHash.Controls['TxtSearchBox'].Text
+        if ($syncHash.CurrentCategory -ne 'Startup') {
+            Render-TweakList -SyncHash $syncHash -Tweaks $Tweaks -CategoryFilter $syncHash.CurrentCategory -SearchText $syncHash.Controls['TxtSearchBox'].Text
+        }
+    }.GetNewClosure())
+
+    $syncHash.Controls['BtnGuidedWizard'].Add_Click({
+        if (-not $syncHash.IsBusy) {
+            Show-GuidedWizardDialog -SyncHash $syncHash -HardwareProfile $HardwareProfile -Tweaks $Tweaks
+        }
     }.GetNewClosure())
 
     $syncHash.Controls['BtnSelectAllVisible'].Add_Click({
@@ -507,6 +832,7 @@ function Start-WinForgeGui {
     }.GetNewClosure())
 
     $profileButtons = @{
+        'BtnProfileLegacy'  = 'Legacy'
         'BtnProfileGaming'  = 'Gaming'
         'BtnProfileTrabajo' = 'Trabajo'
         'BtnProfileLaptop'  = 'Laptop'
@@ -726,7 +1052,7 @@ function Start-WinForgeGui {
     }.GetNewClosure())
 
     $window.Add_ContentRendered({
-        Add-WinForgeLogLine -SyncHash $syncHash -Message "WinForge Engine v$($Config.Version) inicializado en $($HardwareProfile.ComputerName)."
+        Add-WinForgeLogLine -SyncHash $syncHash -Message "WinForge Engine v$($Config.Version) inicializado en $($HardwareProfile.ComputerName) (Tier recomendado: $($HardwareProfile.RecommendedTier))."
         Start-AsyncStatusAudit -SyncHash $syncHash -RunspaceContext $RunspaceContext -Tweaks $Tweaks
     }.GetNewClosure())
 

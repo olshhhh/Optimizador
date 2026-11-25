@@ -1,10 +1,10 @@
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="WinForge Engine — Optimización, Auditoría y Telemetría Windows"
-        Width="1260"
-        Height="820"
-        MinWidth="1040"
-        MinHeight="680"
+        Title="WinForge Engine — Optimización Adaptativa, Auditoría y Telemetría Windows"
+        Width="1300"
+        Height="840"
+        MinWidth="1060"
+        MinHeight="700"
         WindowStartupLocation="CenterScreen"
         Background="#202020"
         Foreground="#FFFFFF"
@@ -59,7 +59,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="12.5"/>
-            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Padding" Value="12,7"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -87,7 +87,7 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="Padding" Value="14,8"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -114,7 +114,7 @@
             <Setter Property="Foreground" Value="#D0D0D0"/>
             <Setter Property="FontSize" Value="13.5"/>
             <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Padding" Value="14,9"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,0,0,4"/>
@@ -140,7 +140,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="185"/>
+            <RowDefinition Height="180"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#2D2D2D" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="8" Padding="18,14" Effect="{StaticResource CardShadow}">
@@ -157,7 +157,7 @@
                         </Border>
                         <StackPanel>
                             <TextBlock Text="WinForge Engine" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF"/>
-                            <TextBlock Text="Transparencia Radical • Seguridad por Diseño • Ejecución Asíncrona" FontSize="12" Foreground="#A0A0A0"/>
+                            <TextBlock Text="Optimización Adaptativa (PC Antiguo y Moderno) • Seguridad por Diseño • Asíncrono" FontSize="12" Foreground="#A0A0A0"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -182,7 +182,8 @@
 
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button x:Name="BtnRefreshStatus" Content="Re-auditar Estado" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,8,0"/>
+                        <Button x:Name="BtnGuidedWizard" Content="Asistente Guiado" Style="{StaticResource FluentPrimaryButton}" Margin="0,0,8,0"/>
+                        <Button x:Name="BtnRefreshStatus" Content="Re-auditar" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,8,0"/>
                         <Button x:Name="BtnRollbackAll" Content="Deshacer Todo / Revertir" Style="{StaticResource FluentDangerButton}"/>
                     </StackPanel>
                     <TextBlock x:Name="TxtSessionStatus" Text="Estado: Listo" FontSize="11.5" Foreground="#A0A0A0" HorizontalAlignment="Right" Margin="0,8,0,0"/>
@@ -198,17 +199,18 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Perfiles:" FontSize="13" FontWeight="SemiBold" Foreground="#A0A0A0" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="Perfiles:" FontSize="13" FontWeight="SemiBold" Foreground="#A0A0A0" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Button x:Name="BtnProfileLegacy" Content="PC Antiguo" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
                     <Button x:Name="BtnProfileGaming" Content="Gaming" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
                     <Button x:Name="BtnProfileTrabajo" Content="Trabajo" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
                     <Button x:Name="BtnProfileLaptop" Content="Laptop" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnProfileExtremo" Content="Extremo" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,14,0"/>
+                    <Button x:Name="BtnProfileExtremo" Content="Extremo" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,12,0"/>
 
-                    <TextBox x:Name="TxtSearchBox" Width="210" Height="32" Background="#202020" Foreground="#FFFFFF" BorderBrush="#3F3F3F" BorderThickness="1" Padding="8,5" VerticalContentAlignment="Center" FontSize="12.5" ToolTip="Filtrar ajustes por nombre o descripción"/>
+                    <TextBox x:Name="TxtSearchBox" Width="190" Height="32" Background="#202020" Foreground="#FFFFFF" BorderBrush="#3F3F3F" BorderThickness="1" Padding="8,5" VerticalContentAlignment="Center" FontSize="12.5" ToolTip="Filtrar ajustes por nombre, ruta o categoría"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="ChkRestorePoint" Content="Crear Punto de Restauración" IsChecked="True" Foreground="#D0D0D0" VerticalAlignment="Center" Margin="0,0,14,0" FontSize="12"/>
+                    <CheckBox x:Name="ChkRestorePoint" Content="Punto de Restauración" IsChecked="True" Foreground="#D0D0D0" VerticalAlignment="Center" Margin="0,0,12,0" FontSize="12"/>
                     <Button x:Name="BtnSelectAllVisible" Content="Marcar Visibles" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,6,0"/>
                     <Button x:Name="BtnClearSelection" Content="Limpiar" Style="{StaticResource FluentSecondaryButton}" Margin="0,0,8,0"/>
                     <Button x:Name="BtnApplySelected" Content="Aplicar Seleccionados (0)" Style="{StaticResource FluentPrimaryButton}"/>
@@ -218,7 +220,7 @@
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="225"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -227,11 +229,12 @@
                     <TextBlock DockPanel.Dock="Top" Text="CATEGORÍAS" FontSize="11" FontWeight="Bold" Foreground="#A0A0A0" Margin="6,4,0,10"/>
                     <Button x:Name="NavAll" DockPanel.Dock="Top" Content="Todas las Categorías" Style="{StaticResource NavCategoryButton}"/>
                     <Button x:Name="NavPerformance" DockPanel.Dock="Top" Content="Performance" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavPrivacy" DockPanel.Dock="Top" Content="Privacy &amp; Telemetry" Style="{StaticResource NavCategoryButton}"/>
-                    <Button x:Name="NavNetwork" DockPanel.Dock="Top" Content="Network" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavPrivacy" DockPanel.Dock="Top" Content="Privacy &amp; IA (24H2+)" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavNetwork" DockPanel.Dock="Top" Content="Network &amp; DNS" Style="{StaticResource NavCategoryButton}"/>
                     <Button x:Name="NavServices" DockPanel.Dock="Top" Content="Services" Style="{StaticResource NavCategoryButton}"/>
                     <Button x:Name="NavDebloat" DockPanel.Dock="Top" Content="Debloat UWP" Style="{StaticResource NavCategoryButton}"/>
                     <Button x:Name="NavMaintenance" DockPanel.Dock="Top" Content="Maintenance (En Vivo)" Style="{StaticResource NavCategoryButton}"/>
+                    <Button x:Name="NavStartup" DockPanel.Dock="Top" Content="Apps de Inicio (Startup)" Style="{StaticResource NavCategoryButton}" Foreground="#38BDF8"/>
 
                     <Border DockPanel.Dock="Bottom" Background="#202020" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="6" Padding="10">
                         <StackPanel>
@@ -243,9 +246,15 @@
             </Border>
 
             <Border Grid.Column="1" Background="#252525" BorderBrush="#3F3F3F" BorderThickness="1" CornerRadius="8" Padding="12">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel x:Name="TweakCardsPanel" Margin="0,0,8,0"/>
-                </ScrollViewer>
+                <Grid>
+                    <ScrollViewer x:Name="TweakCardsScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel x:Name="TweakCardsPanel" Margin="0,0,8,0"/>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="StartupAppsScrollViewer" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel x:Name="StartupAppsPanel" Margin="0,0,8,0"/>
+                    </ScrollViewer>
+                </Grid>
             </Border>
         </Grid>
 

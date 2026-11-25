@@ -4,7 +4,8 @@
 .DESCRIPTION
     Realiza telemetría completa de hardware y sistema operativo usando exclusivamente
     Get-CimInstance, Storage Cmdlets y .NET APIs (cero Get-WmiObject).
-    Aplica Guardrails inquebrantables de seguridad para HDD (SysMain) y Laptops (Energía).
+    Clasifica el equipo por Tier (Legacy/Low-End vs Moderno/Híbrido) y aplica Guardrails
+    inquebrantables de seguridad para HDD (SysMain), RAM (Memory Compression) y Laptops.
 #>
 
 Set-StrictMode -Version Latest
@@ -176,6 +177,10 @@ function Get-WinForgeHardwareProfile {
     $cs = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction SilentlyContinue | Select-Object -First 1
     $os = Get-CimInstance -ClassName 'Win32_OperatingSystem' -ErrorAction SilentlyContinue | Select-Object -First 1
 
+    $cpuName = if ($cpu) { $cpu.Name.Trim() } else { 'Desconocido' }
+    $cpuCores = if ($cpu) { [int]$cpu.NumberOfCores } else { 0 }
+    $cpuThreads = if ($cpu) { [int]$cpu.NumberOfLogicalProcessors } else { 0 }
+
     $totalRamGb = if ($cs -and $cs.TotalPhysicalMemory) {
         [Math]::Round($cs.TotalPhysicalMemory / 1GB, 1)
     }
@@ -185,6 +190,23 @@ function Get-WinForgeHardwareProfile {
         [Math]::Round(($os.FreePhysicalMemory * 1KB) / 1GB, 1)
     }
     else { 0 }
+
+    $ramTier = if ($totalRamGb -le 4.5) {
+        'Critical'
+    }
+    elseif ($totalRamGb -le 8.5) {
+        'Low'
+    }
+    elseif ($totalRamGb -lt 24) {
+        'Standard'
+    }
+    else {
+        'High'
+    }
+
+    # Detección heurística de CPU Híbrido (Intel 12th+ Gen / Core Ultra donde Threads < 2*Cores) o Legacy (<=2 cores)
+    $isLowEndCpu = ($cpuCores -le 2 -or $cpuName -match 'Celeron|Pentium|Atom|Athlon Silver')
+    $isHybridCpu = ($cpuCores -ge 6 -and $cpuThreads -gt $cpuCores -and $cpuThreads -lt ($cpuCores * 2) -and $cpuName -match 'Intel|Core')
 
     $activePlan = 'Desconocido'
     try {
@@ -198,20 +220,34 @@ function Get-WinForgeHardwareProfile {
     $storage = Get-SystemDriveStorageInfo
     $chassis = Get-SystemChassisInfo
 
+    $recommendedTier = if ($storage.IsHDD -or $ramTier -in @('Critical', 'Low') -or $isLowEndCpu) {
+        'Legacy'
+    }
+    elseif ($chassis.IsLaptop) {
+        'Laptop'
+    }
+    else {
+        'Modern'
+    }
+
     return [PSCustomObject]@{
         OSName          = $productName
         DisplayVersion  = $displayVersion
         BuildNumber     = $osBuild
         FullBuild       = "$osBuild.$ubr"
         IsWindows11     = ($osBuild -ge 22000)
-        CpuName         = if ($cpu) { $cpu.Name.Trim() } else { 'Desconocido' }
-        CpuCores        = if ($cpu) { $cpu.NumberOfCores } else { 0 }
-        CpuThreads      = if ($cpu) { $cpu.NumberOfLogicalProcessors } else { 0 }
+        CpuName         = $cpuName
+        CpuCores        = $cpuCores
+        CpuThreads      = $cpuThreads
+        IsLowEndCpu     = $isLowEndCpu
+        IsHybridCpu     = $isHybridCpu
         TotalRamGB      = $totalRamGb
         FreeRamGB       = $freeRamGb
+        RamTier         = $ramTier
         Storage         = $storage
         Chassis         = $chassis
         ActivePowerPlan = $activePlan
+        RecommendedTier = $recommendedTier
         ComputerName    = $env:COMPUTERNAME
         UserName        = $env:USERNAME
     }
@@ -244,6 +280,7 @@ function Test-TweakHardwareCompatibility {
         }
     }
 
+    # Guardrail 1: HDD Mecánico -> Proteger SysMain y ajustes SSDOnly
     if ($HardwareProfile.Storage.IsHDD) {
         if ($Tweak.id -eq 'PERF_SYSMAIN' -or $Tweak.storageSafe -eq 'SSDOnly') {
             return [PSCustomObject]@{
@@ -253,6 +290,15 @@ function Test-TweakHardwareCompatibility {
         }
     }
 
+    # Guardrail 2: Baja RAM (<= 8.5 GB) -> Proteger Memory Compression
+    if ($Tweak.id -eq 'PERF_MEM_COMPRESSION_OFF' -and $HardwareProfile.TotalRamGB -le 8.5) {
+        return [PSCustomObject]@{
+            Status = 'Blocked'
+            Reason = "BLOQUEADO POR SEGURIDAD: Tu equipo tiene $($HardwareProfile.TotalRamGB) GB de RAM. Desactivar la compresión de memoria en equipos con <= 8 GB provoca uso intensivo de disco (paginación) y tirones severos."
+        }
+    }
+
+    # Guardrail 3: Chasis Laptop -> Alerta Naranja en energía/hibernación/P-Cores
     if ($HardwareProfile.Chassis.IsLaptop -and $Tweak.chassisWarning -eq 'Laptop') {
         $guardStatus = 'Warning'
         $guardReason = 'ALERTA LAPTOP: Este ajuste puede reducir la autonomía de batería o afectar la suspensión/hibernación segura en equipos portátiles.'
@@ -283,6 +329,12 @@ function Resolve-WinForgeTweakCompatibility {
 
     foreach ($tweak in $Tweaks) {
         $compat = Test-TweakHardwareCompatibility -Tweak $tweak -HardwareProfile $HardwareProfile
+        $risk = if ($tweak.PSObject.Properties['riskLevel'] -and -not [string]::IsNullOrWhiteSpace($tweak.riskLevel)) {
+            $tweak.riskLevel
+        }
+        else {
+            'Bajo'
+        }
 
         $item = [PSCustomObject]@{
             id              = $tweak.id
@@ -293,6 +345,7 @@ function Resolve-WinForgeTweakCompatibility {
             targetPath      = $tweak.targetPath
             benefit         = $tweak.benefit
             sideEffect      = $tweak.sideEffect
+            riskLevel       = $risk
             minBuild        = $tweak.minBuild
             maxBuild        = $tweak.maxBuild
             chassisWarning  = $tweak.chassisWarning

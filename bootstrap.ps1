@@ -6,13 +6,13 @@
     solicita elevación UAC si es necesario preservando los argumentos y origen, ejecuta el
     orquestador principal y destruye por completo los archivos temporales al finalizar.
 .EXAMPLE
-    irm https://raw.githubusercontent.com/<USER>/<REPO>/main/bootstrap.ps1 | iex
+    irm https://raw.githubusercontent.com/isaacrietman/Optimizador/main/bootstrap.ps1 | iex
 #>
 
 [CmdletBinding()]
 param(
-    [string]$RepoOwner = 'WinForge-Project',
-    [string]$RepoName = 'WinForge-Engine',
+    [string]$RepoOwner = 'isaacrietman',
+    [string]$RepoName = 'Optimizador',
     [string]$Branch = 'main',
     [string]$BaseUrl = '',
     [switch]$Cli,

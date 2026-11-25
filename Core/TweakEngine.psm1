@@ -3,8 +3,8 @@
     WinForge Engine - TweakEngine.
 .DESCRIPTION
     Carga la base de datos de tweaks y perfiles desde JSON, evalúa el estado actual de cada
-    ajuste de forma idempotente y ejecuta acciones de aplicar/revertir respetando estrictamente
-    los guardrails de HardwareAuditor.
+    ajuste de forma idempotente, ejecuta acciones respetando guardrails de HardwareAuditor y
+    gestiona aplicaciones de inicio (Startup Apps) de forma reversible.
 #>
 
 Set-StrictMode -Version Latest
@@ -195,10 +195,96 @@ function Invoke-WinForgeTweakRevert {
     }
 }
 
+function Get-WinForgeStartupApps {
+    [CmdletBinding()]
+    param()
+
+    $locations = @(
+        @{ Scope = 'Usuario (HKCU)'; ActivePath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'; DisabledPath = 'HKCU:\Software\WinForge\DisabledRun' },
+        @{ Scope = 'Sistema (HKLM)'; ActivePath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; DisabledPath = 'HKLM:\SOFTWARE\WinForge\DisabledRun' }
+    )
+
+    $list = [System.Collections.Generic.List[PSCustomObject]]::new()
+
+    foreach ($loc in $locations) {
+        if (Test-Path -LiteralPath $loc.ActivePath) {
+            $props = Get-ItemProperty -Path $loc.ActivePath -ErrorAction SilentlyContinue
+            if ($null -ne $props) {
+                foreach ($p in $props.PSObject.Properties) {
+                    if ($p.Name -in @('PSPath', 'PSParentPath', 'PSChildName', 'PSDrive', 'PSProvider')) { continue }
+                    $list.Add([PSCustomObject]@{
+                        Name         = $p.Name
+                        Command      = [string]$p.Value
+                        Scope        = $loc.Scope
+                        ActivePath   = $loc.ActivePath
+                        DisabledPath = $loc.DisabledPath
+                        Enabled      = $true
+                    })
+                }
+            }
+        }
+
+        if (Test-Path -LiteralPath $loc.DisabledPath) {
+            $dProps = Get-ItemProperty -Path $loc.DisabledPath -ErrorAction SilentlyContinue
+            if ($null -ne $dProps) {
+                foreach ($p in $dProps.PSObject.Properties) {
+                    if ($p.Name -in @('PSPath', 'PSParentPath', 'PSChildName', 'PSDrive', 'PSProvider')) { continue }
+                    $list.Add([PSCustomObject]@{
+                        Name         = $p.Name
+                        Command      = [string]$p.Value
+                        Scope        = $loc.Scope
+                        ActivePath   = $loc.ActivePath
+                        DisabledPath = $loc.DisabledPath
+                        Enabled      = $false
+                    })
+                }
+            }
+        }
+    }
+
+    return $list.ToArray()
+}
+
+function Set-WinForgeStartupAppState {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [PSCustomObject]$StartupApp,
+
+        [Parameter(Mandatory)]
+        [bool]$Enable
+    )
+
+    if ($Enable) {
+        if (-not (Test-Path -LiteralPath $StartupApp.ActivePath)) {
+            New-Item -Path $StartupApp.ActivePath -Force | Out-Null
+        }
+        Set-ItemProperty -Path $StartupApp.ActivePath -Name $StartupApp.Name -Value $StartupApp.Command -Type String
+        if (Test-Path -LiteralPath $StartupApp.DisabledPath) {
+            Remove-ItemProperty -Path $StartupApp.DisabledPath -Name $StartupApp.Name -ErrorAction SilentlyContinue
+        }
+        $StartupApp.Enabled = $true
+    }
+    else {
+        if (-not (Test-Path -LiteralPath $StartupApp.DisabledPath)) {
+            New-Item -Path $StartupApp.DisabledPath -Force | Out-Null
+        }
+        Set-ItemProperty -Path $StartupApp.DisabledPath -Name $StartupApp.Name -Value $StartupApp.Command -Type String
+        if (Test-Path -LiteralPath $StartupApp.ActivePath) {
+            Remove-ItemProperty -Path $StartupApp.ActivePath -Name $StartupApp.Name -ErrorAction SilentlyContinue
+        }
+        $StartupApp.Enabled = $false
+    }
+
+    return $StartupApp
+}
+
 Export-ModuleMember -Function @(
     'Get-WinForgeTweaks',
     'Get-WinForgeProfiles',
     'Get-WinForgeTweakStatus',
     'Invoke-WinForgeTweakApply',
-    'Invoke-WinForgeTweakRevert'
+    'Invoke-WinForgeTweakRevert',
+    'Get-WinForgeStartupApps',
+    'Set-WinForgeStartupAppState'
 )
