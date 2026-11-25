@@ -27,12 +27,16 @@ function Initialize-WinForgeRunspacePool {
     $pool.Open()
 
     $syncHash = [hashtable]::Synchronized(@{
-        Window       = $null
-        Controls     = [hashtable]::Synchronized(@{})
-        IsBusy       = $false
-        CancelFlag   = $false
-        ActiveJobs   = [System.Collections.ArrayList]::Synchronized([System.Collections.ArrayList]::new())
-        RunspacePool = $pool
+        Window         = $null
+        Controls       = [hashtable]::Synchronized(@{})
+        IsBusy         = $false
+        CancelFlag     = $false
+        ActiveJobs     = [System.Collections.ArrayList]::Synchronized([System.Collections.ArrayList]::new())
+        LogQueue       = [System.Collections.Concurrent.ConcurrentQueue[string]]::new()
+        ProgressDirty  = $false
+        ProgressPct    = 0
+        ProgressDetail = ''
+        RunspacePool   = $pool
     })
 
     return [PSCustomObject]@{
@@ -86,6 +90,27 @@ function Start-WinForgeJobMonitor {
     $syncHash = $RunspaceContext.SyncHash
 
     $timer.Add_Tick({
+        if ($null -ne $syncHash.LogQueue -and -not $syncHash.LogQueue.IsEmpty) {
+            $console = $syncHash.Controls['TxtConsoleLog']
+            $msgOut = ''
+            $sbLog = [System.Text.StringBuilder]::new()
+            while ($syncHash.LogQueue.TryDequeue([ref]$msgOut)) {
+                [void]$sbLog.AppendLine($msgOut)
+            }
+            if ($null -ne $console -and $sbLog.Length -gt 0) {
+                $console.AppendText($sbLog.ToString())
+                $console.ScrollToEnd()
+            }
+        }
+
+        if ($syncHash.ProgressDirty) {
+            $syncHash.ProgressDirty = $false
+            $pb = $syncHash.Controls['MainProgressBar']
+            $pd = $syncHash.Controls['TxtProgressDetail']
+            if ($null -ne $pb) { $pb.Value = $syncHash.ProgressPct }
+            if ($null -ne $pd) { $pd.Text = $syncHash.ProgressDetail }
+        }
+
         $jobs = $syncHash.ActiveJobs
         if ($jobs.Count -eq 0) {
             return

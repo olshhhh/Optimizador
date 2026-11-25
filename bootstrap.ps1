@@ -3,7 +3,7 @@
     WinForge Engine - Zero-Install Bootstrapper.
 .DESCRIPTION
     Descarga WinForge Engine desde GitHub Raw a una carpeta temporal volátil en $env:TEMP,
-    solicita elevación UAC si es necesario preservando los argumentos y origen, ejecuta el
+    solicita elevación UAC en modo STA preservando los argumentos y origen, ejecuta el
     orquestador principal y destruye por completo los archivos temporales al finalizar.
 .EXAMPLE
     irm https://raw.githubusercontent.com/olshhhh/Optimizador/main/bootstrap.ps1 | iex
@@ -57,23 +57,33 @@ if (-not (Test-IsAdministrator)) {
     $escapedProfile = $Profile.Replace("'", "''")
     $cliFlag = if ($Cli.IsPresent) { '-Cli' } else { '' }
     $profileArg = if (-not [string]::IsNullOrWhiteSpace($Profile)) { "-Profile '$escapedProfile'" } else { '' }
+    $cacheBust = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 
-    # Si se ejecutó vía iex (sin ruta de script en disco), preservamos origen y parámetros vía EncodedCommand
     if ([string]::IsNullOrWhiteSpace($PSCommandPath)) {
         $elevatedCommand = @"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 `$env:WINFORGE_BASE_URL = '$escapedBaseUrl'
-`$scriptText = Invoke-RestMethod -Uri '$escapedBaseUrl/bootstrap.ps1' -UseBasicParsing
-`$sb = [scriptblock]::Create(`$scriptText)
-& `$sb -BaseUrl '$escapedBaseUrl' $cliFlag $profileArg
+try {
+    `$scriptText = Invoke-RestMethod -Uri '$escapedBaseUrl/bootstrap.ps1?cb=$cacheBust' -UseBasicParsing
+    `$sb = [scriptblock]::Create(`$scriptText)
+    & `$sb -BaseUrl '$escapedBaseUrl' $cliFlag $profileArg
+}
+catch {
+    Write-Host "[WinForge Error] `$(`$_.Exception.Message)" -ForegroundColor Red
+    if ([System.Environment]::UserInteractive) {
+        Read-Host 'Presiona ENTER para cerrar esta ventana'
+    }
+    exit 1
+}
 "@
         $encodedBytes = [System.Text.Encoding]::Unicode.GetBytes($elevatedCommand)
         $encodedCmd = [Convert]::ToBase64String($encodedBytes)
-        $argList = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encodedCmd)
+        $argList = @('-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encodedCmd)
     }
     else {
         $argList = @(
             '-NoProfile',
+            '-STA',
             '-ExecutionPolicy', 'Bypass',
             '-File', "`"$PSCommandPath`"",
             '-BaseUrl', "`"$BaseUrl`""
@@ -118,6 +128,7 @@ Write-Host "[WinForge] Origen: $BaseUrl" -ForegroundColor DarkGray
 Write-Host "[WinForge] Contenedor volátil: $volatileRoot" -ForegroundColor DarkGray
 
 $webClient = $null
+$currentUrl = ''
 try {
     New-Item -Path $volatileRoot -ItemType Directory -Force | Out-Null
     foreach ($subDir in @('Core', 'UI', 'Data')) {
@@ -131,10 +142,12 @@ try {
 
     $total = $manifestFiles.Count
     $index = 0
+    $cb = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
 
     foreach ($relPath in $manifestFiles) {
         $index++
-        $remoteUrl = "$BaseUrl/$relPath"
+        $remoteUrl = "$BaseUrl/$relPath`?cb=$cb"
+        $currentUrl = "$BaseUrl/$relPath"
         $localPath = Join-Path $volatileRoot ($relPath -replace '/', '\')
 
         Write-Host ("[{0}/{1}] Descargando {2}..." -f $index, $total, $relPath) -ForegroundColor Gray
@@ -165,9 +178,15 @@ try {
     & $entryScript @launchParams
 }
 catch {
-    Write-Host "[WinForge] Error fatal en bootstrap: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "`n[WinForge] Error fatal en bootstrap: $($_.Exception.Message)" -ForegroundColor Red
+    if (-not [string]::IsNullOrWhiteSpace($currentUrl)) {
+        Write-Host "[WinForge] Última URL solicitada: $currentUrl" -ForegroundColor Yellow
+    }
     if ($_.Exception.InnerException) {
         Write-Host "[WinForge] Detalle: $($_.Exception.InnerException.Message)" -ForegroundColor DarkRed
+    }
+    if ([System.Environment]::UserInteractive) {
+        Read-Host "`nPresiona ENTER para cerrar"
     }
     exit 1
 }

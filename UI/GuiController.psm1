@@ -589,8 +589,8 @@ function Show-GuidedWizardDialog {
         $cmbUsage.SelectedIndex = 0
     }
 
-    $wizWin.FindName('BtnWizCancel').Add_Click({ $wizWin.DialogResult = $false; $wizWin.Close() })
-    $wizWin.FindName('BtnWizBuild').Add_Click({ $wizWin.DialogResult = $true; $wizWin.Close() })
+    $wizWin.FindName('BtnWizCancel').Add_Click({ $wizWin.DialogResult = $false; $wizWin.Close() }.GetNewClosure())
+    $wizWin.FindName('BtnWizBuild').Add_Click({ $wizWin.DialogResult = $true; $wizWin.Close() }.GetNewClosure())
 
     if ($wizWin.ShowDialog() -ne $true) {
         return
@@ -914,13 +914,8 @@ function Start-WinForgeGui {
             $logFn = {
                 param($msg)
                 $ts = Get-Date -Format 'HH:mm:ss'
-                $win = $SyncHash.Window
-                if ($win -and -not $win.Dispatcher.HasShutdownStarted) {
-                    $win.Dispatcher.Invoke([Action]{
-                        $c = $SyncHash.Controls['TxtConsoleLog']
-                        $c.AppendText("[$ts] $msg`r`n")
-                        $c.ScrollToEnd()
-                    })
+                if ($null -ne $SyncHash.LogQueue) {
+                    $SyncHash.LogQueue.Enqueue("[$ts] $msg")
                 }
             }
 
@@ -941,13 +936,9 @@ function Start-WinForgeGui {
                 $current++
                 $pct = [int](($current / $total) * 100)
 
-                $win = $SyncHash.Window
-                if ($win -and -not $win.Dispatcher.HasShutdownStarted) {
-                    $win.Dispatcher.Invoke([Action]{
-                        $SyncHash.Controls['MainProgressBar'].Value = $pct
-                        $SyncHash.Controls['TxtProgressDetail'].Text = "Ejecutando ($current/$total): $($item.name)"
-                    })
-                }
+                $SyncHash.ProgressPct = $pct
+                $SyncHash.ProgressDetail = "Ejecutando ($current/$total): $($item.name)"
+                $SyncHash.ProgressDirty = $true
 
                 & $logFn "Aplicando [$($item.id)] $($item.name)..."
                 $res = Invoke-WinForgeTweakApply -Tweak $item
@@ -1007,13 +998,8 @@ function Start-WinForgeGui {
             $logCb = {
                 param($msg)
                 $ts = Get-Date -Format 'HH:mm:ss'
-                $win = $SyncHash.Window
-                if ($win -and -not $win.Dispatcher.HasShutdownStarted) {
-                    $win.Dispatcher.Invoke([Action]{
-                        $c = $SyncHash.Controls['TxtConsoleLog']
-                        $c.AppendText("[$ts] $msg`r`n")
-                        $c.ScrollToEnd()
-                    })
+                if ($null -ne $SyncHash.LogQueue) {
+                    $SyncHash.LogQueue.Enqueue("[$ts] $msg")
                 }
             }
 
@@ -1059,4 +1045,16 @@ function Start-WinForgeGui {
     [void]$window.ShowDialog()
 }
 
-Export-ModuleMember -Function @('Start-WinForgeGui')
+Export-ModuleMember -Function @(
+    'Start-WinForgeGui',
+    'Convert-ColorFromHex',
+    'Add-WinForgeLogLine',
+    'Update-SelectedCounterUi',
+    'Set-UiBusyState',
+    'New-TweakCardElement',
+    'Update-TweakStatusBadge',
+    'Render-TweakList',
+    'Render-StartupAppsList',
+    'Show-GuidedWizardDialog',
+    'Start-AsyncStatusAudit'
+)

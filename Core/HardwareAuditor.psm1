@@ -10,6 +10,23 @@
 
 Set-StrictMode -Version Latest
 
+function Get-SafeProp {
+    param(
+        [object]$Object,
+        [string]$PropertyName,
+        [object]$DefaultValue = $null
+    )
+
+    if ($null -eq $Object) {
+        return $DefaultValue
+    }
+    $prop = $Object.PSObject.Properties[$PropertyName]
+    if ($null -ne $prop -and $null -ne $prop.Value) {
+        return $prop.Value
+    }
+    return $DefaultValue
+}
+
 function Get-SystemDriveStorageInfo {
     [CmdletBinding()]
     param()
@@ -33,20 +50,29 @@ function Get-SystemDriveStorageInfo {
     try {
         $partition = Get-Partition -DriveLetter $sysDrive -ErrorAction Stop | Select-Object -First 1
         $disk = $partition | Get-Disk -ErrorAction Stop | Select-Object -First 1
+        $diskNum = [string](Get-SafeProp $disk 'Number' '')
+        $diskUid = [string](Get-SafeProp $disk 'UniqueId' '')
+        $diskFriendly = [string](Get-SafeProp $disk 'FriendlyName' 'Desconocido')
+        $diskBus = [string](Get-SafeProp $disk 'BusType' 'Unknown')
+
         $physDisk = Get-PhysicalDisk -ErrorAction SilentlyContinue |
-            Where-Object { $_.DeviceId -eq "$($disk.Number)" -or $_.UniqueId -eq $disk.UniqueId } |
+            Where-Object {
+                ([string](Get-SafeProp $_ 'DeviceId' '') -eq $diskNum) -or
+                (-not [string]::IsNullOrEmpty($diskUid) -and [string](Get-SafeProp $_ 'UniqueId' '') -eq $diskUid)
+            } |
             Select-Object -First 1
 
-        if ($null -eq $physDisk) {
+        if ($null -eq $physDisk -and -not [string]::IsNullOrEmpty($diskNum)) {
             $physDisk = Get-CimInstance -Namespace 'root\Microsoft\Windows\Storage' -ClassName 'MSFT_PhysicalDisk' -ErrorAction SilentlyContinue |
-                Where-Object { $_.DeviceId -eq "$($disk.Number)" } |
+                Where-Object { [string](Get-SafeProp $_ 'DeviceId' '') -eq $diskNum } |
                 Select-Object -First 1
         }
 
         if ($null -ne $physDisk) {
-            $mediaRaw = "$($physDisk.MediaType)"
-            $busRaw = "$($physDisk.BusType)"
-            $result.Model = if ($physDisk.FriendlyName) { $physDisk.FriendlyName } else { $disk.FriendlyName }
+            $mediaRaw = [string](Get-SafeProp $physDisk 'MediaType' 'Unspecified')
+            $busRaw = [string](Get-SafeProp $physDisk 'BusType' $diskBus)
+            $friendly = [string](Get-SafeProp $physDisk 'FriendlyName' '')
+            $result.Model = if (-not [string]::IsNullOrWhiteSpace($friendly)) { $friendly } else { $diskFriendly }
 
             switch ($mediaRaw) {
                 '3'   { $result.MediaType = 'HDD' }
@@ -66,8 +92,9 @@ function Get-SystemDriveStorageInfo {
                 default { $result.BusType = $busRaw }
             }
 
-            if ($result.MediaType -eq 'Unspecified' -and $physDisk.PSObject.Properties['SpindleSpeed']) {
-                if ($physDisk.SpindleSpeed -gt 0) {
+            $spindle = Get-SafeProp $physDisk 'SpindleSpeed' $null
+            if ($result.MediaType -eq 'Unspecified' -and $null -ne $spindle) {
+                if ([int]$spindle -gt 0) {
                     $result.MediaType = 'HDD'
                 }
                 elseif ($result.BusType -eq 'NVMe') {
@@ -76,8 +103,8 @@ function Get-SystemDriveStorageInfo {
             }
         }
         else {
-            $result.Model = $disk.FriendlyName
-            if ($disk.BusType -eq 'NVMe') {
+            $result.Model = $diskFriendly
+            if ($diskBus -eq 'NVMe') {
                 $result.MediaType = 'SSD'
                 $result.BusType = 'NVMe'
             }
@@ -119,8 +146,9 @@ function Get-SystemChassisInfo {
 
     try {
         $enclosure = Get-CimInstance -ClassName 'Win32_SystemEnclosure' -ErrorAction SilentlyContinue | Select-Object -First 1
-        if ($null -ne $enclosure -and $null -ne $enclosure.ChassisTypes) {
-            $chassisRaw = @($enclosure.ChassisTypes)
+        $typesVal = Get-SafeProp $enclosure 'ChassisTypes' $null
+        if ($null -ne $typesVal) {
+            $chassisRaw = @($typesVal)
             foreach ($code in $chassisRaw) {
                 if ($laptopChassisTypes -contains [int]$code) {
                     $isLaptop = $true
@@ -157,37 +185,34 @@ function Get-WinForgeHardwareProfile {
     $ntKey = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
     $ntProps = Get-ItemProperty -Path $ntKey -ErrorAction SilentlyContinue
 
-    $productName = if ($ntProps -and $ntProps.ProductName) { $ntProps.ProductName } else { 'Windows' }
+    $productName = [string](Get-SafeProp $ntProps 'ProductName' 'Windows')
     if ($osBuild -ge 22000 -and $productName -match 'Windows 10') {
         $productName = $productName -replace 'Windows 10', 'Windows 11'
     }
 
-    $displayVersion = if ($ntProps -and $ntProps.DisplayVersion) {
-        $ntProps.DisplayVersion
+    $displayVersion = [string](Get-SafeProp $ntProps 'DisplayVersion' '')
+    if ([string]::IsNullOrWhiteSpace($displayVersion)) {
+        $displayVersion = [string](Get-SafeProp $ntProps 'ReleaseId' 'N/A')
     }
-    elseif ($ntProps -and $ntProps.ReleaseId) {
-        $ntProps.ReleaseId
-    }
-    else {
-        'N/A'
-    }
-    $ubr = if ($ntProps -and $null -ne $ntProps.UBR) { $ntProps.UBR } else { 0 }
+    $ubr = [int](Get-SafeProp $ntProps 'UBR' 0)
 
     $cpu = Get-CimInstance -ClassName 'Win32_Processor' -ErrorAction SilentlyContinue | Select-Object -First 1
     $cs = Get-CimInstance -ClassName 'Win32_ComputerSystem' -ErrorAction SilentlyContinue | Select-Object -First 1
     $os = Get-CimInstance -ClassName 'Win32_OperatingSystem' -ErrorAction SilentlyContinue | Select-Object -First 1
 
-    $cpuName = if ($cpu) { $cpu.Name.Trim() } else { 'Desconocido' }
-    $cpuCores = if ($cpu) { [int]$cpu.NumberOfCores } else { 0 }
-    $cpuThreads = if ($cpu) { [int]$cpu.NumberOfLogicalProcessors } else { 0 }
+    $cpuName = ([string](Get-SafeProp $cpu 'Name' 'Desconocido')).Trim()
+    $cpuCores = [int](Get-SafeProp $cpu 'NumberOfCores' 0)
+    $cpuThreads = [int](Get-SafeProp $cpu 'NumberOfLogicalProcessors' 0)
 
-    $totalRamGb = if ($cs -and $cs.TotalPhysicalMemory) {
-        [Math]::Round($cs.TotalPhysicalMemory / 1GB, 1)
+    $totalMemBytes = [double](Get-SafeProp $cs 'TotalPhysicalMemory' 0)
+    $totalRamGb = if ($totalMemBytes -gt 0) {
+        [Math]::Round($totalMemBytes / 1GB, 1)
     }
     else { 0 }
 
-    $freeRamGb = if ($os -and $os.FreePhysicalMemory) {
-        [Math]::Round(($os.FreePhysicalMemory * 1KB) / 1GB, 1)
+    $freeMemKb = [double](Get-SafeProp $os 'FreePhysicalMemory' 0)
+    $freeRamGb = if ($freeMemKb -gt 0) {
+        [Math]::Round(($freeMemKb * 1KB) / 1GB, 1)
     }
     else { 0 }
 
@@ -204,13 +229,12 @@ function Get-WinForgeHardwareProfile {
         'High'
     }
 
-    # Detección heurística de CPU Híbrido (Intel 12th+ Gen / Core Ultra donde Threads < 2*Cores) o Legacy (<=2 cores)
     $isLowEndCpu = ($cpuCores -le 2 -or $cpuName -match 'Celeron|Pentium|Atom|Athlon Silver')
     $isHybridCpu = ($cpuCores -ge 6 -and $cpuThreads -gt $cpuCores -and $cpuThreads -lt ($cpuCores * 2) -and $cpuName -match 'Intel|Core')
 
     $activePlan = 'Desconocido'
     try {
-        $powerOut = & powercfg.exe /getactivescheme 2>$null
+        $powerOut = (& powercfg.exe /getactivescheme 2>$null) -join ' '
         if ($powerOut -match '\(([^)]+)\)') {
             $activePlan = $Matches[1]
         }
@@ -267,22 +291,25 @@ function Test-TweakHardwareCompatibility {
     $guardReason = ''
 
     $currentBuild = [int]$HardwareProfile.BuildNumber
-    if ($null -ne $Tweak.minBuild -and $currentBuild -lt [int]$Tweak.minBuild) {
+    $minB = Get-SafeProp $Tweak 'minBuild' $null
+    $maxB = Get-SafeProp $Tweak 'maxBuild' $null
+
+    if ($null -ne $minB -and $currentBuild -lt [int]$minB) {
         return [PSCustomObject]@{
             Status = 'Blocked'
-            Reason = "Requiere Windows Build $($Tweak.minBuild)+ (Actual: $currentBuild)."
+            Reason = "Requiere Windows Build $minB+ (Actual: $currentBuild)."
         }
     }
-    if ($null -ne $Tweak.maxBuild -and $currentBuild -gt [int]$Tweak.maxBuild) {
+    if ($null -ne $maxB -and $currentBuild -gt [int]$maxB) {
         return [PSCustomObject]@{
             Status = 'Blocked'
-            Reason = "Compatible solo hasta Windows Build $($Tweak.maxBuild) (Actual: $currentBuild)."
+            Reason = "Compatible solo hasta Windows Build $maxB (Actual: $currentBuild)."
         }
     }
 
-    # Guardrail 1: HDD Mecánico -> Proteger SysMain y ajustes SSDOnly
+    $storageSafe = [string](Get-SafeProp $Tweak 'storageSafe' 'All')
     if ($HardwareProfile.Storage.IsHDD) {
-        if ($Tweak.id -eq 'PERF_SYSMAIN' -or $Tweak.storageSafe -eq 'SSDOnly') {
+        if ($Tweak.id -eq 'PERF_SYSMAIN' -or $storageSafe -eq 'SSDOnly') {
             return [PSCustomObject]@{
                 Status = 'Blocked'
                 Reason = "BLOQUEADO POR SEGURIDAD: La unidad del sistema ($($HardwareProfile.Storage.DriveLetter)) es un HDD mecánico. Desactivar $($Tweak.name) degradaría gravemente los tiempos de arranque y carga."
@@ -290,7 +317,6 @@ function Test-TweakHardwareCompatibility {
         }
     }
 
-    # Guardrail 2: Baja RAM (<= 8.5 GB) -> Proteger Memory Compression
     if ($Tweak.id -eq 'PERF_MEM_COMPRESSION_OFF' -and $HardwareProfile.TotalRamGB -le 8.5) {
         return [PSCustomObject]@{
             Status = 'Blocked'
@@ -298,12 +324,12 @@ function Test-TweakHardwareCompatibility {
         }
     }
 
-    # Guardrail 3: Chasis Laptop -> Alerta Naranja en energía/hibernación/P-Cores
-    if ($HardwareProfile.Chassis.IsLaptop -and $Tweak.chassisWarning -eq 'Laptop') {
+    $chassisWarn = [string](Get-SafeProp $Tweak 'chassisWarning' 'None')
+    if ($HardwareProfile.Chassis.IsLaptop -and $chassisWarn -eq 'Laptop') {
         $guardStatus = 'Warning'
         $guardReason = 'ALERTA LAPTOP: Este ajuste puede reducir la autonomía de batería o afectar la suspensión/hibernación segura en equipos portátiles.'
     }
-    elseif (-not $HardwareProfile.Chassis.IsLaptop -and $Tweak.chassisWarning -eq 'Desktop') {
+    elseif (-not $HardwareProfile.Chassis.IsLaptop -and $chassisWarn -eq 'Desktop') {
         $guardStatus = 'Warning'
         $guardReason = 'ALERTA DESKTOP: Ajuste orientado originalmente a sistemas portátiles.'
     }
@@ -329,12 +355,8 @@ function Resolve-WinForgeTweakCompatibility {
 
     foreach ($tweak in $Tweaks) {
         $compat = Test-TweakHardwareCompatibility -Tweak $tweak -HardwareProfile $HardwareProfile
-        $risk = if ($tweak.PSObject.Properties['riskLevel'] -and -not [string]::IsNullOrWhiteSpace($tweak.riskLevel)) {
-            $tweak.riskLevel
-        }
-        else {
-            'Bajo'
-        }
+        $risk = [string](Get-SafeProp $tweak 'riskLevel' 'Bajo')
+        if ([string]::IsNullOrWhiteSpace($risk)) { $risk = 'Bajo' }
 
         $item = [PSCustomObject]@{
             id              = $tweak.id
@@ -346,10 +368,10 @@ function Resolve-WinForgeTweakCompatibility {
             benefit         = $tweak.benefit
             sideEffect      = $tweak.sideEffect
             riskLevel       = $risk
-            minBuild        = $tweak.minBuild
-            maxBuild        = $tweak.maxBuild
-            chassisWarning  = $tweak.chassisWarning
-            storageSafe     = $tweak.storageSafe
+            minBuild        = Get-SafeProp $tweak 'minBuild' $null
+            maxBuild        = Get-SafeProp $tweak 'maxBuild' $null
+            chassisWarning  = Get-SafeProp $tweak 'chassisWarning' 'None'
+            storageSafe     = Get-SafeProp $tweak 'storageSafe' 'All'
             detectScript    = $tweak.detectScript
             applyScript     = $tweak.applyScript
             revertScript    = $tweak.revertScript

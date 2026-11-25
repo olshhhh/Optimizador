@@ -31,6 +31,7 @@ $script:WinForgeConfig = @{
     ProfilesFile  = Join-Path $BasePath 'Data\profiles.json'
     XamlFile      = Join-Path $BasePath 'UI\MainWindow.xaml'
     BackupRoot    = Join-Path $env:LOCALAPPDATA 'WinForge\Backups'
+    LogRoot       = Join-Path $env:LOCALAPPDATA 'WinForge\Logs'
 }
 
 function Test-CanLaunchWpfGui {
@@ -81,7 +82,7 @@ if ($useGui -and ([System.Threading.Thread]::CurrentThread.GetApartmentState() -
         $argList += "`"$Profile`""
     }
 
-    $proc = Start-Process -FilePath $shellExe -ArgumentList $argList -Wait -PassThru
+    $proc = Start-Process -FilePath $shellExe -ArgumentList $argList -NoNewWindow -Wait -PassThru
     exit $proc.ExitCode
 }
 
@@ -137,9 +138,20 @@ try {
     }
 }
 catch {
-    Write-Host "[WinForge Error] $($_.Exception.Message)" -ForegroundColor Red
-    if ($_.ScriptStackTrace) {
-        Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
+    $errText = "[WinForge Error] $($_.Exception.Message)`r`n$($_.ScriptStackTrace)"
+    Write-Host "`n$errText" -ForegroundColor Red
+    try {
+        if (-not (Test-Path -LiteralPath $script:WinForgeConfig.LogRoot)) {
+            New-Item -Path $script:WinForgeConfig.LogRoot -ItemType Directory -Force | Out-Null
+        }
+        $logFile = Join-Path $script:WinForgeConfig.LogRoot 'last_error.log'
+        [System.IO.File]::WriteAllText($logFile, $errText, [System.Text.UTF8Encoding]::new($false))
+        Write-Host "[WinForge] Detalle guardado en: $logFile" -ForegroundColor Yellow
+    }
+    catch { }
+
+    if ([System.Environment]::UserInteractive) {
+        Read-Host "`nOcurrió un error al iniciar WinForge. Presiona ENTER para cerrar"
     }
     exit 1
 }
